@@ -1,11 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1E40AF;
-  --color-primary-light: #3B82F6;
-  --color-primary-dark: #1E3A8A;
+  
+  /* 🎨 Core Colors */
+  --color-bg: #0a0f1c;         /* Deep navy background */
+  --color-surface: #111827;    /* Surface / Card background */
+  --color-text: #f9fafb;       /* Main text */
+  --color-muted: #9ca3af;      /* Muted text */
 
-  --color-secondary: #F59E0B;
-  --color-secondary-light: #FBBF24;
-  --color-secondary-dark: #B45309;
+  /* 🚀 Accents */
+  --color-primary: #3b82f6;    /* Blue glow */
+  --color-secondary: #8b5cf6;  /* Purple accent */
+  --color-success: #10b981;    /* Emerald for highlights */
+
+  /* 🧠 Fonts */
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Orbitron", sans-serif;
+
+  /* 🧱 Rounded & Shadows */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-soft: 0 0 20px rgba(59, 130, 246, 0.1);
+  --shadow-strong: 0 0 30px rgba(139, 92, 246, 0.25);
+}
+/* Remove built-in eye icons in password fields */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none !important;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-clear-button {
+  display: none !important;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+input[type="password"]::-webkit-inner-spin-button {
+  display: none !important;
 }
