@@ -4,6 +4,9 @@ import LandingPage from '../pages/LandingPage';
 import LoginPage from '../pages/LoginPage';
 import SignupPage from '../pages/SignupPage';
 import DashboardPage from '../pages/DashboardPage';
+import ROLES from '../utils/constants/Role';
+import ProtectedRoute from '../config/ProtectedRoute';
+import NotFoundPage from '../pages/404/NotFoundPage';
 const RoutesComponent = () => {
 
   return (
@@ -12,7 +15,9 @@ const RoutesComponent = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute element={DashboardPage} allowedRoles={[ROLES.PLAYER]} />} />
+
+        <Route path="/unauthorized" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );
