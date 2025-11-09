@@ -7,6 +7,7 @@ import DashboardPage from '../pages/DashboardPage';
 import ROLES from '../utils/constants/Role';
 import ProtectedRoute from '../config/ProtectedRoute';
 import NotFoundPage from '../pages/404/NotFoundPage';
+import RoomPage from '../pages/room/CodingRoomPage';
 const RoutesComponent = () => {
 
   return (
@@ -18,6 +19,8 @@ const RoutesComponent = () => {
         <Route path="/dashboard" element={<ProtectedRoute element={DashboardPage} allowedRoles={[ROLES.PLAYER]} />} />
 
         <Route path="/unauthorized" element={<NotFoundPage />} />
+        <Route path="*" element={<NotFoundPage />} /> 
+        <Route path="/room" element={<RoomPage />} /> 
       </Routes>
     </Router>
   );
