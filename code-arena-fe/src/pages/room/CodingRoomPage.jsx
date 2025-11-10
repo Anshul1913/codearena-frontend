@@ -8,12 +8,14 @@ import { Clock } from "lucide-react";
 import CodeEditor from "../../components/editor/CodeEditor";
 import axios from "axios";
 import CodeExecutionApi from "../../services/CodeExecutionService";
+import StarterCodeApi from "../../services/StarterCodeService";
 
 export default function RoomPage({ roomId }) {
   const [question, setQuestion] = useState(null);
   const [code, setCode] = useState("// Write your solution here...");
   const [language, setLanguage] = useState("javascript");
   const [timeLeft, setTimeLeft] = useState(1800); // 30 mins in seconds
+  const [starterCode, setStarterCode] = useState([]);
 const languageVersionMap = {
     javascript: "18.15.0",
     python: "3.10.0",
@@ -29,20 +31,34 @@ const languageVersionMap = {
 //     console.log(data);
 //   };
 
-//   useEffect(() => {
-//     fetchQuestion();
-//     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-//     return () => clearInterval(timer);
-//   }, []);
+  // useEffect(() => {
+  //   fetchQuestion();
+  //   const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+  //   return () => clearInterval(timer);
+  // }, []);
 
-//   const fetchQuestion = async () => {
-//     try {
-//       const data = await RoomApi.getRoomQuestion(roomId);
-//       setQuestion(data);
-//     } catch (err) {
-//       console.error("Error loading question:", err);
-//     }
-//   };
+  useEffect(() => {
+    fetchStarterCode();
+  }, []);
+  const fetchStarterCode = async () => {
+    try {
+      const response = await StarterCodeApi.getStarterCode("6602aed7-12ea-4916-b47e-a397f50f3b1d")
+      console.log(response.data);
+      setStarterCode(response.data);
+      // setCode(response.code);
+    } catch (error) {
+      console.error("Error fetching starter code:", error);
+    }
+  };
+
+  // const fetchQuestion = async () => {
+  //   try {
+  //     const data = await Room.getRoomQuestion(roomId);
+  //     setQuestion(data);
+  //   } catch (err) {
+  //     console.error("Error loading question:", err);
+  //   }
+  // };
 
   const handleSubmit = async () => {
     try {
@@ -95,7 +111,7 @@ const languageVersionMap = {
         {/* Left: Question + Code */}
         <div className="flex flex-col flex-1 border-r border-border overflow-auto">
           {/* <QuestionPanel question={question} /> */}
-          <CodeEditor code={code} setCode={setCode} language={language} setLanguage={setLanguage} />
+          <CodeEditor code={code} setCode={setCode} language={language} setLanguage={setLanguage}  starterCode={starterCode}/>
         </div>
 
         {/* Right: Chat */}
