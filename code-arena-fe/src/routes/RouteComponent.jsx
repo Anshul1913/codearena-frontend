@@ -8,6 +8,7 @@ import ROLES from '../utils/constants/Role';
 import ProtectedRoute from '../config/ProtectedRoute';
 import NotFoundPage from '../pages/404/NotFoundPage';
 import RoomPage from '../pages/room/CodingRoomPage';
+import MCQRoom from '../pages/room/McqQuestionRoomPage';
 const RoutesComponent = () => {
 
   return (
@@ -21,6 +22,7 @@ const RoutesComponent = () => {
         <Route path="/unauthorized" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} /> 
         <Route path="/room" element={<RoomPage />} /> 
+        <Route path="/mcq-room" element={<MCQRoom />} /> 
       </Routes>
     </Router>
   );

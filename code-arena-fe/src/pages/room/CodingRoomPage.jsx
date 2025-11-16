@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Clock } from "lucide-react";
-// import RoomApi from "../../services/RoomApi";
-// import QuestionPanel from "../../components/room/QuestionPanel";
-// import CodeEditor from "../../components/room/CodeEditor";
-// import Chat from "../../components/chat/Chat"; // from other dev
 import CodeEditor from "../../components/editor/CodeEditor";
-import axios from "axios";
 import CodeExecutionApi from "../../services/CodeExecutionService";
 import StarterCodeApi from "../../services/StarterCodeService";
 
@@ -42,7 +37,7 @@ const languageVersionMap = {
   }, []);
   const fetchStarterCode = async () => {
     try {
-      const response = await StarterCodeApi.getStarterCode("6602aed7-12ea-4916-b47e-a397f50f3b1d")
+      const response = await StarterCodeApi.getStarterCode("af908e6b-0853-414a-b804-479a3bca4445")
       console.log(response.data);
       setStarterCode(response.data);
       // setCode(response.code);
@@ -62,12 +57,6 @@ const languageVersionMap = {
 
   const handleSubmit = async () => {
     try {
-    //   const res = await RoomApi.submitSolution({
-    //     roomId,
-    //     code,
-    //     language,
-    //   });
-    //   console.log("Submission Result:", res);
     const codeExecutionDTO = {
       language: language,
       version: languageVersionMap[language],
