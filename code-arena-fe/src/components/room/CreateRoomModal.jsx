@@ -8,6 +8,10 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
   const [questionType, setQuestionType] = useState(null);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const [numQuestions, setNumQuestions] = useState(2);
+  const maxQuestions =
+    selectedQuestionType?.optionValue === "Coding Question" ? 10 :
+    selectedQuestionType?.optionValue === "MCQ Question" ? 50 :
+    20;
   const [difficulty, setDifficulty] = useState(null);
   const [duration, setDuration] = useState(30); // in minutes
   const [questionTypes, setQuestionTypes] = useState([]);
@@ -68,6 +72,16 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
     
     setQuestionType(selected.value);
     setSelectedQuestionType(selected);
+    const selectedType = selected.optionValue;
+
+    const newMax =
+    selectedType === "Coding Question" ? 10 :
+    selectedType === "MCQ Question" ? 50 :
+    20;
+
+  if (numQuestions > newMax) {
+    setNumQuestions(newMax);
+  }
     console.log(selectedQuestionType);
   };
   if (!isOpen) return null;
@@ -120,6 +134,8 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
           value={numQuestions}
           onChange={(e) => setNumQuestions(Number(e.target.value))}
           placeholder="e.g. 5"
+          min={1}
+          max={maxQuestions}
           required
         />
 
@@ -152,7 +168,7 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
         <input
           type="number"
           min={30}
-          max={120}
+          max={180}
           step={5}
           className="w-full px-4 py-2 rounded-radius-lg bg-bg border border-border text-text mb-6 focus:outline-none focus:ring-2 focus:ring-primary focus:border-none"
           value={duration}

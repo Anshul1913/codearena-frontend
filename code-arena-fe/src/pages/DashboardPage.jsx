@@ -8,17 +8,21 @@ import JoinRoomModal from "../components/room/JoinRoomModal";
 import CreateRoomModal from "../components/room/CreateRoomModal";
 import RoomApi from "../services/RoomService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardPage() {
   const user = { name: "Anshul", rank: 12, wins: 42, losses: 18, streak: 5 };
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-
+const navigate = useNavigate();
   const handleCreateRoom = async(roomData) => {
     
     try {
     console.log("Creating room with:", roomData);
     const response = await RoomApi.createRoom(roomData);
+      if(response.data.questionType === "MCQ Question"){
+        navigate("/mcq-room/"+response.data.roomCode);
+      }
     toast.success("🎉 Room created successfully!");
     console.log("Room creation response:", response);
 

@@ -22,7 +22,7 @@ const RoutesComponent = () => {
         <Route path="/unauthorized" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} /> 
         <Route path="/room" element={<RoomPage />} /> 
-        <Route path="/mcq-room" element={<MCQRoom />} /> 
+        <Route path="/mcq-room/:roomCode" element={<MCQRoom />} /> 
       </Routes>
     </Router>
   );

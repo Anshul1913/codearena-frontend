@@ -17,5 +17,17 @@ const RoomApi = {
     // Implementation for joining a room
     console.log("Joined room with ID:", roomId);
   },
+  getChatsFromRoom: async (roomId) => {
+    try {
+      const response = await apiInterceptor.get(`/chat/history/${roomId}`);
+      console.log(response);
+      
+      console.info("✅ Fetched chats successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching chats:", error);
+      throw error;
+    }
+  },
 };
 export default RoomApi;
