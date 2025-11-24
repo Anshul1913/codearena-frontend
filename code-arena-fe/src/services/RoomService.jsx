@@ -19,6 +19,7 @@ const RoomApi = {
   },
   getChatsFromRoom: async (roomId) => {
     try {
+      
       const response = await apiInterceptor.get(`/chat/history/${roomId}`);
       console.log(response);
       

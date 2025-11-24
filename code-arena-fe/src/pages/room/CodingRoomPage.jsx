@@ -37,7 +37,7 @@ const languageVersionMap = {
   }, []);
   const fetchStarterCode = async () => {
     try {
-      const response = await StarterCodeApi.getStarterCode("af908e6b-0853-414a-b804-479a3bca4445")
+      const response = await StarterCodeApi.getStarterCode("c560c587-33c7-4148-906e-8a4599972df9")
       console.log(response.data);
       setStarterCode(response.data);
       // setCode(response.code);

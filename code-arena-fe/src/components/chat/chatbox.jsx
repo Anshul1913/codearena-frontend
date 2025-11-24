@@ -5,6 +5,7 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import JwtUtils from "../../utils/security/JwtUtils";
 import RoomApi from "../../services/RoomService";
+import { connectSocket } from "../../services/connectSocket";
 
 export default function ChatBox({ roomId, height = "600px" }) {
   const [messages, setMessages] = useState([]);
@@ -21,55 +22,22 @@ export default function ChatBox({ roomId, height = "600px" }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws-connect"),
-      reconnectDelay: 5000,
-      debug: () => {},
+useEffect(() => {
+  const socketClient = connectSocket(
+    roomId,
+    (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    },
+    async () => {
+      setConnected(true);
+      const res = await RoomApi.getChatsFromRoom(roomId);
+      setMessages(res);
+    }
+  );
 
-      onConnect: async () => {
-        console.log("📡 STOMP connected");
-        setConnected(true);
-
-        // Load previous messages
-        try {
-          const res = await RoomApi.getChatsFromRoom(roomId);
-          setMessages(
-            res.map((msg) => ({
-              sender: msg.senderUsername,
-              text: msg.content,
-              timestamp: msg.timestamp,
-            }))
-          );
-        } catch (error) {
-          console.error("Error loading chat history:", error);
-        }
-
-        // Subscribe for live messages
-        client.subscribe(`/topic/room/${roomId}`, (msg) => {
-          const body = JSON.parse(msg.body);
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: body.senderUsername,
-              text: body.content,
-              timestamp: body.timestamp,
-            },
-          ]);
-        });
-      },
-
-      onStompError: (frame) => {
-        console.error("❌ STOMP Error", frame);
-      },
-    });
-
-    client.activate();
-    clientRef.current = client;
-
-    return () => clientRef.current?.deactivate();
-  }, [roomId]);
+  clientRef.current = socketClient;
+  return () => socketClient.deactivate();
+}, [roomId]);
 
   const sendMessage = () => {
     if (!input.trim() || !clientRef.current || !connected) return;
@@ -113,13 +81,13 @@ export default function ChatBox({ roomId, height = "600px" }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`p-3 rounded-radius-lg max-w-[85%] ${
-              msg.sender === username
+              msg.senderUsername === username
                 ? "bg-primary text-white ml-auto"
                 : "bg-bg border border-border"
             }`}
           >
-            <p className="text-xs opacity-70">{msg.sender}</p>
-            <p className="text-sm font-medium">{msg.text}</p>
+            <p className="text-xs opacity-70">{msg.senderUsername}</p>
+            <p className="text-sm font-medium">{msg.content}</p>
           </motion.div>
         ))}
         <div ref={messagesEndRef} />
