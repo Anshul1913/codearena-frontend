@@ -22,22 +22,22 @@ export default function ChatBox({ roomId, height = "600px" }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-useEffect(() => {
-  const socketClient = connectSocket(
-    roomId,
-    (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    },
-    async () => {
-      setConnected(true);
-      const res = await RoomApi.getChatsFromRoom(roomId);
-      setMessages(res);
-    }
-  );
+  useEffect(() => {
+    const socketClient = connectSocket(
+      roomId,
+      (msg) => {
+        setMessages((prev) => [...prev, msg]);
+      },
+      async () => {
+        setConnected(true);
+        const res = await RoomApi.getChatsFromRoom(roomId);
+        setMessages(res);
+      }
+    );
 
-  clientRef.current = socketClient;
-  return () => socketClient.deactivate();
-}, [roomId]);
+    clientRef.current = socketClient;
+    return () => socketClient.deactivate();
+  }, [roomId]);
 
   const sendMessage = () => {
     if (!input.trim() || !clientRef.current || !connected) return;
@@ -80,7 +80,7 @@ useEffect(() => {
             key={idx}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-3 rounded-radius-lg max-w-[85%] ${
+            className={`p-3 rounded-radius-lg max-w-[85%] break-words whitespace-pre-wrap ${
               msg.senderUsername === username
                 ? "bg-primary text-white ml-auto"
                 : "bg-bg border border-border"

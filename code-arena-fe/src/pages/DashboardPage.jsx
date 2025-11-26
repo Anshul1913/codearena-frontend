@@ -21,7 +21,8 @@ const navigate = useNavigate();
     console.log("Creating room with:", roomData);
     const response = await RoomApi.createRoom(roomData);
       if(response.data.questionType === "MCQ Question"){
-        navigate("/mcq-room/"+response.data.roomCode);
+        navigate("/mcq-waiting-room/"+response.data.roomCode);
+        // navigate("/mcq-room/"+response.data.roomCode);
       }
     toast.success("🎉 Room created successfully!");
     console.log("Room creation response:", response);
@@ -41,8 +42,16 @@ const navigate = useNavigate();
   }
   };
 
-  const handleJoinRoom = (roomId) => {
+  const handleJoinRoom = async(roomId) => {
     console.log("Joining room:", roomId);
+    try {
+    const response = await RoomApi.joinRoom(roomId);
+    console.log("Join room response:", response);
+    navigate("/mcq-waiting-room/"+roomId);
+    } catch (error) {
+      console.error("❌ Error joining room:", error);
+    }
+
   };
   //   const players = [
   //     { rank: 1, name: "Aarav", wins: 120, streak: 10 },

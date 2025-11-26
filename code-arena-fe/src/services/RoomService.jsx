@@ -14,8 +14,16 @@ const RoomApi = {
         }
   },
   joinRoom: async (roomId) => {
-    // Implementation for joining a room
-    console.log("Joined room with ID:", roomId);
+    console.log("Joining room with ID:", roomId);
+    try {
+      const response = await apiInterceptor.post(`/rooms/join`, {},
+                { params: { roomCode: roomId } });
+      console.info("✅ Joined room successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error joining room:", error);
+      throw error;
+    }
   },
   getChatsFromRoom: async (roomId) => {
     try {
@@ -27,6 +35,16 @@ const RoomApi = {
       return response.data;
     } catch (error) {
       console.error("❌ Error fetching chats:", error);
+      throw error;
+    }
+  },
+  getRoomDetails: async (roomId) => {
+    try {
+      const response = await apiInterceptor.get(`/rooms/${roomId}`);
+      console.info("✅ Fetched room details successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching room details:", error);
       throw error;
     }
   },

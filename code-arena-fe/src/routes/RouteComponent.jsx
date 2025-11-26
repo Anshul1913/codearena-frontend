@@ -9,6 +9,7 @@ import ProtectedRoute from '../config/ProtectedRoute';
 import NotFoundPage from '../pages/404/NotFoundPage';
 import RoomPage from '../pages/room/CodingRoomPage';
 import MCQRoom from '../pages/room/McqQuestionRoomPage';
+import McqWaitingRoomPage from '../pages/room/McqWaitingRoomPage';
 const RoutesComponent = () => {
 
   return (
@@ -21,8 +22,9 @@ const RoutesComponent = () => {
 
         <Route path="/unauthorized" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} /> 
-        <Route path="/room" element={<RoomPage />} /> 
-        <Route path="/mcq-room/:roomCode" element={<MCQRoom />} /> 
+        <Route path="/room" element={<ProtectedRoute element={RoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
+        <Route path="/mcq-room/:roomCode" element={<ProtectedRoute element={MCQRoom} allowedRoles={[ROLES.PLAYER]} />} /> 
+        <Route path="/mcq-waiting-room/:roomCode" element={<ProtectedRoute element={McqWaitingRoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
       </Routes>
     </Router>
   );
