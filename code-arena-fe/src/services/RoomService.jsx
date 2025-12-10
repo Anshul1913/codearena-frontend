@@ -48,5 +48,15 @@ const RoomApi = {
       throw error;
     }
   },
+  startRoom: async () =>{
+    try {
+      const response = await apiInterceptor.post(`/rooms/start`);
+      console.info("✅ Fetched Questions details successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching room details:", error);
+      throw error;
+    }
+  }
 };
 export default RoomApi;

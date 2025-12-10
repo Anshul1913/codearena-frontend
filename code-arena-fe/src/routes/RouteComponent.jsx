@@ -22,7 +22,7 @@ const RoutesComponent = () => {
 
         <Route path="/unauthorized" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} /> 
-        <Route path="/room" element={<ProtectedRoute element={RoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
+        <Route path="/room/:roomCode" element={<ProtectedRoute element={RoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
         <Route path="/mcq-room/:roomCode" element={<ProtectedRoute element={MCQRoom} allowedRoles={[ROLES.PLAYER]} />} /> 
         <Route path="/mcq-waiting-room/:roomCode" element={<ProtectedRoute element={McqWaitingRoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
       </Routes>

@@ -36,6 +36,7 @@
     "react-leaflet": "^5.0.0",
     "react-paginate": "^8.3.0",
     "react-router-dom": "^7.7.1",
+    "react-split-pane": "^0.1.92",
     "react-toastify": "^11.0.5",
     "recharts": "^3.1.2",
     "sockjs-client": "^1.6.1",

@@ -4,6 +4,7 @@ const CodeExecutionApi = {
   executeCode: async (codeExecutionDTO) => {
     try {
         const response = await apiInterceptor.post("/execute", codeExecutionDTO);
+
         console.info("✅ Code executed:", response.data);
         return response.data;
     } catch (error) {

@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
   const [questionType, setQuestionType] = useState(null);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
-  const [numQuestions, setNumQuestions] = useState(2);
+  const [noOfQuestions, setNoOfQuestions] = useState(2);
   const maxQuestions =
     selectedQuestionType?.optionValue === "Coding Question" ? 10 :
     selectedQuestionType?.optionValue === "MCQ Question" ? 50 :
@@ -41,7 +41,7 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
   };
 
   const handleSubmit = () => {
-    if (numQuestions <= 0)
+    if (noOfQuestions <= 0)
       return toast.warn("Please enter a valid number of questions.");
     if (duration < 30 || duration > 120)
       return toast.warn("Room duration must be between 30 and 120 minutes.");
@@ -50,7 +50,7 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
       return toast.warn("Please select a question type.");
     const roomData = {
       questionType: selectedQuestionType.id,
-      numQuestions,
+      noOfQuestions,
       difficulty: difficulty ? difficulty : null,
       duration,
     };
@@ -61,7 +61,7 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
   };
   const onReset = () => {
     setQuestionType(null);
-    setNumQuestions(2);
+    setNoOfQuestions(2);
     setDifficulty(null);
     setSelectedQuestionType(null);
     setDuration(30);
@@ -79,8 +79,8 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
     selectedType === "MCQ Question" ? 50 :
     20;
 
-  if (numQuestions > newMax) {
-    setNumQuestions(newMax);
+  if (noOfQuestions > newMax) {
+    setNoOfQuestions(newMax);
   }
     console.log(selectedQuestionType);
   };
@@ -131,8 +131,8 @@ export default function CreateRoomModal({ isOpen, onClose, onCreate }) {
         <input
           type="number"
           className="w-full px-4 py-2 rounded-radius-lg bg-bg border border-border text-text mb-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-none"
-          value={numQuestions}
-          onChange={(e) => setNumQuestions(Number(e.target.value))}
+          value={noOfQuestions}
+          onChange={(e) => setNoOfQuestions(Number(e.target.value))}
           placeholder="e.g. 5"
           min={1}
           max={maxQuestions}
