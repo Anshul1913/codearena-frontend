@@ -47,7 +47,7 @@ export default function RoomPage() {
   const fetchStarterCode = async () => {
     try {
       const response = await StarterCodeApi.getStarterCode(
-        "82f04364-6d38-4233-abee-3832e5c7fe4a"
+        "d8255c2d-262d-4b79-9b81-5cc6208532be"
       );
       console.log(response.data);
       setStarterCode(response.data);

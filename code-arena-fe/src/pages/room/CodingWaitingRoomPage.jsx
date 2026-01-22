@@ -13,7 +13,7 @@ import JwtUtils from "../../utils/security/JwtUtils";
 import RoomApi from "../../services/RoomService";
 import { assign, set } from "lodash";
 
-export default function McqWaitingRoomPage() {
+export default function CodingWaitingRoomPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -45,7 +45,7 @@ export default function McqWaitingRoomPage() {
         }
 
         if (data.event === "START_MATCH" ) {
-          navigate(`/mcq-room/${roomCode}`);
+          navigate(`/room/${roomCode}`);
         }
       });
     });
@@ -81,7 +81,7 @@ export default function McqWaitingRoomPage() {
 
   const startMatch = () => {
     startMatchSocket(roomCode);
-    navigate(`/mcq-room/${roomCode}`, { replace: true });
+    navigate(`/room/${roomCode}`, { replace: true });
   };
 
   return (

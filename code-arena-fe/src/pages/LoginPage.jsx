@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import AuthApi from "../services/AuthService";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
+import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
-
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -26,6 +27,7 @@ const LoginPage = () => {
 
     console.log("Login Success:", data);
     toast.success("🎉 Login successful!");
+    navigate("/dashboard", { replace: true });
   } catch (error) {
 
     toast.error(error.message || "Login failed. Please try again.");

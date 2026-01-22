@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Code, Brain, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-bg text-text font-sans relative overflow-hidden">
       {/* Background Glow */}
@@ -22,7 +24,7 @@ const LandingPage = () => {
           <a href="#community" className="hover:text-primary transition-colors">Community</a>
         </div>
 
-        <button className="bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-radius-lg font-display font-semibold shadow-shadow-soft hover:shadow-shadow-strong transition-all">
+        <button onClick={()=>navigate("/login")} className="bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-radius-lg font-display font-semibold shadow-shadow-soft hover:shadow-shadow-strong transition-all">
           Login
         </button>
       </nav>

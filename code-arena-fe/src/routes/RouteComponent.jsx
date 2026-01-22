@@ -10,6 +10,8 @@ import NotFoundPage from '../pages/404/NotFoundPage';
 import RoomPage from '../pages/room/CodingRoomPage';
 import MCQRoom from '../pages/room/McqQuestionRoomPage';
 import McqWaitingRoomPage from '../pages/room/McqWaitingRoomPage';
+import RoomResultPage from '../pages/ResultPage';
+import CodingWaitingRoomPage from '../pages/room/CodingWaitingRoomPage';
 const RoutesComponent = () => {
 
   return (
@@ -23,8 +25,10 @@ const RoutesComponent = () => {
         <Route path="/unauthorized" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} /> 
         <Route path="/room/:roomCode" element={<ProtectedRoute element={RoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
+        <Route path="/room/:roomCode/result" element={<ProtectedRoute element={RoomResultPage} allowedRoles={[ROLES.PLAYER]} />} /> 
         <Route path="/mcq-room/:roomCode" element={<ProtectedRoute element={MCQRoom} allowedRoles={[ROLES.PLAYER]} />} /> 
         <Route path="/mcq-waiting-room/:roomCode" element={<ProtectedRoute element={McqWaitingRoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
+        <Route path="/coding-waiting-room/:roomCode" element={<ProtectedRoute element={CodingWaitingRoomPage} allowedRoles={[ROLES.PLAYER]} />} /> 
       </Routes>
     </Router>
   );

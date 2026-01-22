@@ -57,6 +57,26 @@ const RoomApi = {
       console.error("❌ Error fetching room details:", error);
       throw error;
     }
-  }
+  },
+  roomQuestions: async (roomId) => {
+    try {
+      const response = await apiInterceptor.get(`/rooms/${roomId}/questions`);
+      console.info("✅ Fetched Questions details successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching room details:", error);
+      throw error;
+    }
+  },
+  setRoomQuestions: async (roomId) => {
+    try {
+      const response = await apiInterceptor.post(`/rooms/${roomId}/assign-questions`);
+      console.info("✅ Set Questions successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error setting room questions:", error);
+      throw error;
+    } 
+  },
 };
 export default RoomApi;

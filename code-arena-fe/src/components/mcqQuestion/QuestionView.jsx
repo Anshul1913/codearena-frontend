@@ -1,17 +1,20 @@
 import { motion } from "framer-motion";
 
 export default function QuestionView({ question, questionIndex, answers, setAnswers }) {
+  
+  const selectedOptionId = answers[question.questionId];
   return (
     <div className="p-6 mb-4 bg-surface border rounded-radius-xl shadow-shadow-soft">
       <h2 className="text-xl font-display text-primary mb-4">
         Question {questionIndex + 1}
       </h2>
 
-      <p className="text-lg font-semibold mb-6">{question.question}</p>
+      <p className="text-lg font-semibold mb-6">{question.title}</p>
 
       <div className="space-y-3">
         {question.options.map((opt, idx) => {
-          const selected = answers[questionIndex] === idx;
+          
+          const selected = selectedOptionId === opt.id;
 
           return (
             <motion.div
@@ -23,10 +26,10 @@ export default function QuestionView({ question, questionIndex, answers, setAnsw
                   : "bg-bg border-border"
               }`}
               onClick={() =>
-                setAnswers({ ...answers, [questionIndex]: idx })
+                setAnswers({ ...answers,   [question.questionId]: opt.id })
               }
             >
-              {opt}
+              {opt.optionText}
             </motion.div>
           );
         })}

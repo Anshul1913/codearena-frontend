@@ -14,23 +14,25 @@ export default function DashboardPage() {
   const user = { name: "Anshul", rank: 12, wins: 42, losses: 18, streak: 5 };
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleCreateRoom = async(roomData) => {
     
     try {
     console.log("Creating room with:", roomData);
     const response = await RoomApi.createRoom(roomData);
       if(response.data.questionType === "MCQ Question"){
+        
         navigate("/mcq-waiting-room/"+response.data.roomCode);
         // navigate("/mcq-room/"+response.data.roomCode);
+      }else{
+        navigate("/coding-waiting-room/"+response.data.roomCode);
       }
     toast.success("🎉 Room created successfully!");
     console.log("Room creation response:", response);
 
     // Optional: navigate or update UI
     // navigate(`/room/${response.roomId}`);
-
-  } catch (error) {
+   } catch (error) {
     console.error("❌ Error creating room:", error);
 
     // Try to extract readable message from backend
@@ -47,7 +49,11 @@ const navigate = useNavigate();
     try {
     const response = await RoomApi.joinRoom(roomId);
     console.log("Join room response:", response);
-    navigate("/mcq-waiting-room/"+roomId);
+    if(response.questionType === "MCQ Question"){
+      navigate("/mcq-waiting-room/"+roomId);
+    }else{
+      navigate("/coding-waiting-room/"+roomId);
+    }
     } catch (error) {
       console.error("❌ Error joining room:", error);
     }
