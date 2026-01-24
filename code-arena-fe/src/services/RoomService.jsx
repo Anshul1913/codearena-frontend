@@ -38,9 +38,9 @@ const RoomApi = {
       throw error;
     }
   },
-  getRoomDetails: async (roomId) => {
+  getRoomDetails: async (roomCode) => {
     try {
-      const response = await apiInterceptor.get(`/rooms/${roomId}`);
+      const response = await apiInterceptor.get(`/rooms/${roomCode}`);
       console.info("✅ Fetched room details successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -78,5 +78,15 @@ const RoomApi = {
       throw error;
     } 
   },
+  fetchRoomQuestionWithTestCases: async (roomCode) => {
+    try {
+      const response = await apiInterceptor.get(`/rooms/${roomCode}/coding-questions`);
+      console.info("✅ Fetched room question with test cases successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching room question with test cases:", error);
+      throw error;
+    }
+  }
 };
 export default RoomApi;

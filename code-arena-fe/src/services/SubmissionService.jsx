@@ -29,7 +29,20 @@ const SubmissionApi = {
         console.error("❌ Error submiting:", error.data);
         throw error;
     }
-  }
+  },
+  submitCodingAnswers: async (codeExecutionDTO, roomCode) => { 
+    try {
+      console.log("Payload to be send ",codeExecutionDTO);
+      
+        const response = await apiInterceptor.post(`/submissions/submit/coding/${roomCode}/${codeExecutionDTO.codingQuestionId}`, codeExecutionDTO);
+
+        console.info("✅ Code executed:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ Error executing code:", error);
+        throw error;
+    }
+  },
 
 };
 export default SubmissionApi;
