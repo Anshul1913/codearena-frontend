@@ -10,6 +10,7 @@ export default function CodeEditor({
   onRun,
   onSubmit,
   isRunning,
+  onEndTest,
 }) {
   const [version, setVersion] = useState("-");
 
@@ -61,7 +62,7 @@ export default function CodeEditor({
           <button
             onClick={onRun}
             disabled={isRunning}
-            className="px-3 py-1 border rounded text-sm hover:bg-gray-700"
+            className="px-3 py-1 bg-gray-700 text-white  rounded text-sm hover:bg-gray-700"
           >
             {isRunning ? "Running..." : "Run"}
           </button>
@@ -72,6 +73,12 @@ export default function CodeEditor({
             className="px-3 py-1 bg-primary text-white rounded text-sm hover:opacity-90"
           >
             Submit
+          </button>
+           <button
+            onClick={onEndTest}
+            className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:opacity-90"
+          >
+            End Test
           </button>
         </div>
 

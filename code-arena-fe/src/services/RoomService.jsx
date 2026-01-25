@@ -87,6 +87,16 @@ const RoomApi = {
       console.error("❌ Error fetching room question with test cases:", error);
       throw error;
     }
-  }
+  },
+  fetchRoomQuestionStatus: async (roomCode) => {
+    try {
+      const response = await apiInterceptor.get(`/rooms/${roomCode}/question-status`);
+      console.info("✅ Fetched room question status successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error fetching room question status:", error);
+      throw error;
+    }
+  },
 };
 export default RoomApi;

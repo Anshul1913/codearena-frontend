@@ -17,94 +17,183 @@ export default function RoomPage() {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("java");
   const [starterCode, setStarterCode] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(1000); // 30 min (seconds)
+  const [timerReady, setTimerReady] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
   const fetched = useRef(false);
-
+  const autoExitTriggered = useRef(false);
   const languageVersionMap = {
     javascript: "18.15.0",
     python: "3.10.0",
     cpp: "10.2.0",
     java: "15.0.2",
   };
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleAutoExitCoding();
-
-      return;
-    }
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
 
   const handleAutoExitCoding = () => {
     alert("⏰ Time's up! The coding session has ended.");
     // Additional logic for auto-submission or redirecting can be added here
   };
-  //   useEffect(() => {
-
-  //   const syncInterval = setInterval(() => {
-  //     fetchRoomDetails();
-  //   }, 30000); // sync every 30 sec
-
-  //   return () => clearInterval(syncInterval);
-
-  // }, []);
-
-  // ================= FETCH QUESTIONS =================
-
+  
   useEffect(() => {
-    if (fetched.current) return;
-    fetched.current = true;
 
-    fetchQuestions();
-    fetchRoomDetails();
-  }, [roomCode]);
+  if (fetched.current) return;
+  fetched.current = true;
 
-  const fetchRoomDetails = async () => {
-    try {
-      const response = await RoomApi.getRoomDetails(roomCode);
+  loadRoom();
 
-      const startedAt = new Date(response.data.startedAt).getTime();
+}, [roomCode]);
 
-      const durationMs = response.data.expiryDuration * 60 * 1000;
 
-      const endTime = startedAt + durationMs;
+useEffect(() => {
 
-      const now = Date.now();
+  if (timeLeft === null) return;
 
-      const remainingSeconds = Math.max(Math.floor((endTime - now) / 1000), 0);
+  const interval = setInterval(() => {
 
-      setTimeLeft(remainingSeconds);
-      setRoomDetails(response.data);
-    } catch (error) {
-      console.error("Error fetching room details:", error);
-    }
-  };
+    setTimeLeft(prev => {
 
-  const fetchQuestions = async () => {
-    try {
-      const response = await RoomApi.fetchRoomQuestionWithTestCases(roomCode);
+      if (prev <= 1) {
 
-      console.log("Fetched Questions:", response);
+        clearInterval(interval);
 
-      setQuestions(response);
+        if (!autoExitTriggered.current) {
+          autoExitTriggered.current = true;
+          handleAutoExitCoding();
+        }
 
-      if (response.length > 0) {
-        setStarterCode(response[0].starterCodes);
-        setCode(response[0].starterCodes?.[0]?.codeTemplate || "");
+        return 0;
       }
-    } catch (error) {
-      console.error("Error fetching questions:", error);
+
+      return prev - 1;
+    });
+
+  }, 1000);
+
+  return () => clearInterval(interval);
+
+}, [timeLeft !== null]);
+
+
+const loadRoom = async () => {
+
+  try {
+
+    const [
+      roomRes,
+      questionRes,
+      statusRes
+    ] = await Promise.all([
+      RoomApi.getRoomDetails(roomCode),
+      RoomApi.fetchRoomQuestionWithTestCases(roomCode),
+      RoomApi.fetchRoomQuestionStatus(roomCode)
+    ]);
+
+    // ---------- TIMER ----------
+
+    const startedAt = new Date(roomRes.data.startedAt).getTime();
+    const durationMs = roomRes.data.expiryDuration * 60 * 1000;
+
+    const endTime = startedAt + durationMs;
+    const now = Date.now();
+
+    const remainingSeconds =
+      Math.max(Math.floor((endTime - now) / 1000), 0);
+
+    setTimeLeft(remainingSeconds);
+
+    // ---------- MERGE STATUS ----------
+
+    const statusMap = {};
+
+    statusRes.forEach(s => {
+      statusMap[s.questionId] = s;
+    });
+
+    const mergedQuestions = questionRes.map(q => ({
+      ...q,
+      solved: statusMap[q.id]?.solved || false,
+      attempts: statusMap[q.id]?.attempts || 0
+    }));
+
+    setQuestions(mergedQuestions);
+
+    // ---------- DEFAULT QUESTION ----------
+
+    if (mergedQuestions.length > 0) {
+      setStarterCode(mergedQuestions[0].starterCodes);
+      setCode(mergedQuestions[0].starterCodes?.[0]?.codeTemplate || "");
     }
+
+  } catch (err) {
+    console.error("Room load error", err);
+  }
+};
+
+
+  const mergeQuestionStatus = (questions, statusList) => {
+    const statusMap = {};
+
+    statusList.forEach((s) => {
+      statusMap[s.questionId] = s;
+    });
+
+    const merged = questions.map((q) => {
+      const status = statusMap[q.id];
+
+      return {
+        ...q,
+        solved: status?.solved || false,
+        attempts: status?.attempts || 0,
+      };
+    });
+
+    setQuestions(merged);
   };
+
+  // const fetchRoomDetails = async () => {
+  //   try {
+  //     const response = await RoomApi.getRoomDetails(roomCode);
+
+  //     const startedAt = new Date(response.data.startedAt).getTime();
+
+  //     const durationMs = response.data.expiryDuration * 60 * 1000;
+
+  //     const endTime = startedAt + durationMs;
+
+  //     const now = Date.now();
+
+  //     const remainingSeconds = Math.max(Math.floor((endTime - now) / 1000), 0);
+
+  //     setRoomDetails(response.data);
+  //     setTimeLeft(remainingSeconds);
+  //     // small delay guarantees state sync
+  //     setTimeout(() => setTimerReady(true), 0);
+  //   } catch (error) {
+  //     console.error("Error fetching room details:", error);
+  //   }
+  // };
+
+  // const fetchQuestions = async () => {
+  //   try {
+  //     const response = await RoomApi.fetchRoomQuestionWithTestCases(roomCode);
+
+  //     console.log("Fetched Questions:", response);
+
+  //     setQuestions(response);
+
+  //     if (response.length > 0) {
+  //       setStarterCode(response[0].starterCodes);
+  //       setCode(response[0].starterCodes?.[0]?.codeTemplate || "");
+  //     }
+      
+  //   } catch (error) {
+  //     console.error("Error fetching questions:", error);
+  //   }
+  // };
 
   // ================= QUESTION CHANGE =================
 
@@ -152,22 +241,36 @@ export default function RoomPage() {
 
   const handleSubmit = async () => {
     setIsRunning(true);
-      console.log(questions[currentIndex]);
+    console.log(questions[currentIndex]);
 
-      const payload = {
-        language,
-        version: languageVersionMap[language],
-        code,
-        codingQuestionId: questions[currentIndex].id,
-      };
-      const result = await CodeExecutionApi.submitCode(payload,roomCode);
-      console.log(result.stdout);
+    const payload = {
+      language,
+      version: languageVersionMap[language],
+      code,
+      codingQuestionId: questions[currentIndex].id,
+    };
+    const result = await CodeExecutionApi.submitCode(payload, roomCode);
+    console.log(result.stdout);
 
-      if (result.stdout) setOutput(result.stdout);
-      setIsRunning(false);
-      alert(`✅ Submission Result: ${result.stdout }`);
+    if (result.stdout) setOutput(result.stdout);
+    setIsRunning(false);
+    fetchRoomQuestionStatus();
+    // alert(`✅ Submission Result: ${result.stdout}`);
   };
-
+  const fetchRoomQuestionStatus = async () => {
+    try {
+      const response = await RoomApi.fetchRoomQuestionStatus(roomCode);
+      console.log("Fetched Question Status:", response);
+      // Update question statuses if needed
+      mergeQuestionStatus(questions, response);
+      console.log(questions);
+    } catch (error) {
+      console.error("Error fetching question status:", error);
+    }
+  };
+  const handleEndTest = async () => {
+    alert("You have ended the test session.");
+  };
   // ================= UI =================
 
   const currentQuestion = questions[currentIndex];
@@ -199,19 +302,29 @@ export default function RoomPage() {
             <>
               {/* Question Navigation */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {questions.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => changeQuestion(idx)}
-                    className={`w-8 h-8 rounded ${
-                      idx === currentIndex
-                        ? "bg-primary text-white"
-                        : "bg-gray-300 text-gray-800"
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
+                {questions.map((q, idx) => {
+                  const isCurrent = idx === currentIndex;
+
+                  let bgColor = "bg-gray-300 text-gray-800"; // not attempted
+
+                  if (q.solved) {
+                    bgColor = "bg-green-500 text-white"; // solved
+                  }
+
+                  if (isCurrent) {
+                    bgColor = "bg-primary text-white"; // current overrides all
+                  }
+
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => changeQuestion(idx)}
+                      className={`w-8 h-8 rounded font-semibold ${bgColor}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Question Detail */}
@@ -258,6 +371,7 @@ export default function RoomPage() {
               onRun={handleRun}
               onSubmit={handleSubmit}
               isRunning={isRunning}
+              onEndTest={handleEndTest}
             />
           </div>
 
@@ -293,7 +407,7 @@ export default function RoomPage() {
               ✕
             </button>
           </div>
-          <ChatBox roomId={roomCode} height="80%" />
+          <ChatBox roomId={roomCode} height="92%" />
         </div>
       )}
     </div>
