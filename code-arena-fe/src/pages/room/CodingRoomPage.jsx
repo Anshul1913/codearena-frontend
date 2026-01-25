@@ -266,7 +266,7 @@ const loadRoom = async () => {
     }
   };
   const handleEndTest = async () => {
-    alert("You have ended the test session.");
+    // alert("You have ended the test session.");
   };
   // ================= UI =================
 

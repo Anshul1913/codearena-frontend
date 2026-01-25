@@ -30,7 +30,7 @@ export default function ChatBox({ roomId, height = "600px" }) {
       },
       async () => {
         setConnected(true);
-        const res = await RoomApi.getChatsFromRoom(roomId);
+        const res = await RoomApi.getChatsFromRoom(roomId);        
         setMessages(res);
       }
     );

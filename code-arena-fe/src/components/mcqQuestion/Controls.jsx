@@ -1,6 +1,7 @@
 export default function Controls({ current, total, setCurrent, onSubmit }) {
   return (
-    <div className="flex justify-between mt-4">
+    <div className="flex flex-col sm:flex-row gap-3 justify-between mt-4">
+
       <button
         disabled={current === 0}
         onClick={() => setCurrent(current - 1)}
