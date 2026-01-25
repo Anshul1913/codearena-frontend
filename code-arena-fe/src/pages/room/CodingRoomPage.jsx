@@ -33,10 +33,7 @@ export default function RoomPage() {
     java: "15.0.2",
   };
 
-  const handleAutoExitCoding = () => {
-    alert("⏰ Time's up! The coding session has ended.");
-    // Additional logic for auto-submission or redirecting can be added here
-  };
+  
   
   useEffect(() => {
 
@@ -62,7 +59,7 @@ useEffect(() => {
 
         if (!autoExitTriggered.current) {
           autoExitTriggered.current = true;
-          handleAutoExitCoding();
+          handleEndTest();
         }
 
         return 0;
