@@ -1,9 +1,6 @@
-export default function QuestionPalette({
-  questions,
-  current,
-  answers,
-  onSelect,
-}) {
+export default function QuestionPalette({ questions, current, answers, onSelect }) {
+
+
   const getStatusClass = (idx) => {
     const questionId = questions[idx]?.questionId;
 
@@ -21,8 +18,8 @@ export default function QuestionPalette({
     <div className="p-4 bg-surface border rounded-radius-xl shadow-shadow-soft space-y-4">
       <h3 className="text-sm font-semibold text-primary">Question Navigator</h3>
 
-      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-4 gap-2">
-        {questions.map((_, idx) => (
+      <div className="grid grid-cols-4 gap-2">
+        {(questions || []).map((_, idx) => (
           <button
             key={idx}
             onClick={() => onSelect(idx)}

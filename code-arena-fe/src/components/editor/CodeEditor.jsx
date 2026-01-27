@@ -22,7 +22,7 @@ export default function CodeEditor({
   }, [language, setLanguage]);
 
   // 🧠 Find the matching starter code object for the selected language
-  const currentStarter = starterCode.find(
+  const currentStarter = (starterCode || []).find(
     (s) => s.language.toLowerCase() === (language || "java").toLowerCase(),
   );
 
@@ -51,11 +51,22 @@ export default function CodeEditor({
             onChange={(e) => setLanguage(e.target.value)}
             className="border border-border rounded px-2 py-1 bg-bg text-sm text-teal-50"
           >
-            {starterCode.map((s) => (
-              <option key={s.language} value={s.language.toLowerCase()}>
-                {s.language}
-              </option>
-            ))}
+            {(starterCode && starterCode.length > 0) ? (
+              // Show languages from starterCode if available
+              starterCode.map((s) => (
+                <option key={s.language} value={s.language.toLowerCase()}>
+                  {s.language}
+                </option>
+              ))
+            ) : (
+              // Fallback: Show default languages if no starterCode
+              <>
+                <option value="java">Java</option>
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+                <option value="javascript">JavaScript</option>
+              </>
+            )}
           </select>
 
           {/* RUN BUTTON */}

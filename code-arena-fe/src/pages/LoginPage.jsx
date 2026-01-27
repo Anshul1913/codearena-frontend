@@ -11,30 +11,38 @@ const LoginPage = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Login Form Data:", form);
     try {
-        const loginDTO = { email: form.username, password: form.password };
-      const data = await AuthApi.login(loginDTO);
-    //   const data = await AuthApi.login({ username: form.username, password: form.password });
-    const { jwtToken } = data;
-        Cookies.set('jwtToken', jwtToken);
-        const storedJwtToken = Cookies.get('jwtToken');
+      const loginDTO = { username: form.username, password: form.password };
+      const response = await AuthApi.login(loginDTO);
 
-         console.log("JWT Token:", jwtToken);
-         console.log("Stored JWT Token:", storedJwtToken);
+      // Extract JWT token from nested response structure
+      const jwtToken = response.data?.jwtToken || response.jwtToken;
 
-    console.log("Login Success:", data);
-    toast.success("🎉 Login successful!");
-    navigate("/dashboard", { replace: true });
-  } catch (error) {
+      if (!jwtToken) {
+        console.error("No JWT token in response:", response);
+        toast.error("Login failed: No token received");
+        return;
+      }
 
-    toast.error(error.message || "Login failed. Please try again.");
-    console.error("Login Failed:", error);
-  }
+      Cookies.set('jwtToken', jwtToken);
+      const storedJwtToken = Cookies.get('jwtToken');
+
+      console.log("JWT Token:", jwtToken);
+      console.log("Stored JWT Token:", storedJwtToken);
+
+      console.log("Login Success:", response);
+      toast.success("🎉 Login successful!");
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+
+      toast.error(error.message || "Login failed. Please try again.");
+      console.error("Login Failed:", error);
+    }
   };
-   
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg text-text font-sans relative overflow-hidden">
@@ -79,6 +87,11 @@ const LoginPage = () => {
               className="w-full px-4 py-2 rounded-radius-lg bg-bg/70 border border-surface/50 text-text placeholder-muted focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all"
               placeholder="Enter your password"
             />
+            <div className="text-right mt-1">
+              <a href="/forgot-password" className="text-xs text-primary hover:underline">
+                Forgot Password?
+              </a>
+            </div>
           </div>
 
           <button

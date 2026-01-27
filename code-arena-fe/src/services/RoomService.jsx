@@ -10,14 +10,14 @@ const RoomApi = {
       return response.data;
     } catch (error) {
       console.error("❌ Error creating room:", error);
-            throw error;
-        }
+      throw error;
+    }
   },
   joinRoom: async (roomId) => {
     console.log("Joining room with ID:", roomId);
     try {
       const response = await apiInterceptor.post(`/rooms/join`, {},
-                { params: { roomCode: roomId } });
+        { params: { roomCode: roomId } });
       console.info("✅ Joined room successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -27,10 +27,10 @@ const RoomApi = {
   },
   getChatsFromRoom: async (roomId) => {
     try {
-      
+
       const response = await apiInterceptor.get(`/chat/history/${roomId}`);
       console.log(response);
-      
+
       console.info("✅ Fetched chats successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -48,7 +48,7 @@ const RoomApi = {
       throw error;
     }
   },
-  startRoom: async () =>{
+  startRoom: async () => {
     try {
       const response = await apiInterceptor.post(`/rooms/start`);
       console.info("✅ Fetched Questions details successfully:", response.data);
@@ -76,11 +76,11 @@ const RoomApi = {
     } catch (error) {
       console.error("❌ Error setting room questions:", error);
       throw error;
-    } 
+    }
   },
   fetchRoomQuestionWithTestCases: async (roomCode) => {
     try {
-      const response = await apiInterceptor.get(`/rooms/${roomCode}/coding-questions`);
+      const response = await apiInterceptor.get(`/rooms/${roomCode}/questions`);
       console.info("✅ Fetched room question with test cases successfully:", response.data);
       return response.data;
     } catch (error) {

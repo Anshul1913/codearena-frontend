@@ -1,4 +1,4 @@
-const PLAYER = "PLAYER";
+const PLAYER = "ROLE_PLAYER";
 const ROLES = {
 
   PLAYER,

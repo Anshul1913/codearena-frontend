@@ -17,25 +17,83 @@ const AuthApi = {
   },
 
   /**
-   * 🧑‍💻 Signup API
-   * @param {Object} signupDTO - { name, email, password, phone }
+   * 📧 Request Signup OTP
+   * @param {string} email - User's email address
    * @returns {Promise<Object>} response.data
    */
-  signupPlayer: async (signupData) => {
+  requestSignupOtp: async (email) => {
     try {
-        const signupDTO = {
-            role: "PLAYER",
-            name: signupData.name,
-            email: signupData.email,
-            password: signupData.password,
-            phone: signupData.phone,
-        };
-      console.info("📤 Sending signup data:", signupDTO);
-      const response = await apiInterceptor.post("/auth/signup", signupDTO);
-      console.info("✅ Signup successful:", response.data);
+      const response = await apiInterceptor.post("/auth/signup/request-otp", null, {
+        params: { email }
+      });
+      console.info("✅ Signup OTP requested successfully:", response.data);
       return response.data;
     } catch (error) {
-      handleApiError(error, "signup");
+      handleApiError(error, "request signup OTP");
+    }
+  },
+
+  /**
+   * ✅ Verify Signup OTP and Create Account
+   * @param {Object} signupVerifyRequest - { email, otp, signupRequest: { email, password, name, role } }
+   * @returns {Promise<Object>} response.data
+   */
+  verifySignupOtp: async (signupVerifyRequest) => {
+    try {
+      console.info("📤 Verifying signup OTP:", signupVerifyRequest);
+      const response = await apiInterceptor.post("/auth/signup/verify", signupVerifyRequest);
+      console.info("✅ Signup verification successful:", response.data);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "verify signup OTP");
+    }
+  },
+
+  /**
+   * 🔑 Request Forgot Password OTP
+   * @param {string} email - User's email address
+   * @returns {Promise<Object>} response.data
+   */
+  requestForgotPasswordOtp: async (email) => {
+    try {
+      const response = await apiInterceptor.post("/auth/forgot-password/request-otp", null, {
+        params: { email }
+      });
+      console.info("✅ Forgot password OTP requested successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "request forgot password OTP");
+    }
+  },
+
+  /**
+   * 🔄 Reset Password with OTP
+   * @param {Object} resetPasswordDTO - { email, otp, newPassword }
+   * @returns {Promise<Object>} response.data
+   */
+  resetPassword: async (resetPasswordDTO) => {
+    try {
+      console.info("📤 Resetting password:", { email: resetPasswordDTO.email });
+      const response = await apiInterceptor.post("/auth/forgot-password/verify", resetPasswordDTO);
+      console.info("✅ Password reset successful:", response.data);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "reset password");
+    }
+  },
+
+  /**
+   * 🔐 Change Password (for logged-in users)
+   * @param {Object} changePasswordDTO - { oldPassword, newPassword }
+   * @returns {Promise<Object>} response.data
+   */
+  changePassword: async (changePasswordDTO) => {
+    try {
+      const response = await apiInterceptor.post("/auth/change-password", changePasswordDTO);
+      console.info("✅ Password changed successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "change password");
     }
   },
 };

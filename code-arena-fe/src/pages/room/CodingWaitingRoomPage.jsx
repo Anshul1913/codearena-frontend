@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { motion } from "framer-motion";
-import { Copy } from "lucide-react";
+import { Copy, Mail } from "lucide-react";
 import {
   startMatchSocket,
   subscribeToRoomStatus,
@@ -12,12 +12,14 @@ import {
 import JwtUtils from "../../utils/security/JwtUtils";
 import RoomApi from "../../services/RoomService";
 import { assign, set } from "lodash";
+import InviteModal from "../../components/room/InviteModal";
 
 export default function CodingWaitingRoomPage() {
   const { roomCode } = useParams();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [roomType, setRoomType] = useState(null);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
     setCopied(true);
@@ -44,7 +46,7 @@ export default function CodingWaitingRoomPage() {
           setPlayerCount(data.playerCount);
         }
 
-        if (data.event === "START_MATCH" ) {
+        if (data.event === "START_MATCH") {
           navigate(`/room/${roomCode}`);
         }
       });
@@ -55,7 +57,7 @@ export default function CodingWaitingRoomPage() {
   // const assignroomQuestions = async (roomId) => {
   //   try {
   //     console.log("room yoo ");
-      
+
   //     const response = await RoomApi.setRoomQuestions(roomId);
   //     console.log(response);
   //     (response);
@@ -131,10 +133,9 @@ export default function CodingWaitingRoomPage() {
         >
           <div
             className={`h-32 w-32 rounded-full border-[4px] shadow-xl flex items-center justify-center text-4xl font-bold
-              ${
-                player2
-                  ? "bg-green-600/70 border-green-400 shadow-green-500/50"
-                  : "bg-gray-600/50 border-gray-400 animate-pulse"
+              ${player2
+                ? "bg-green-600/70 border-green-400 shadow-green-500/50"
+                : "bg-gray-600/50 border-gray-400 animate-pulse"
               }`}
           >
             {player2 ? "🧑" : "…"}
@@ -167,6 +168,19 @@ export default function CodingWaitingRoomPage() {
         </motion.button>
       </motion.div>
 
+      {/* Invite Friend Button (only for room creator) */}
+      {player1 === JwtUtils.getUsername() && (
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={() => setIsInviteModalOpen(true)}
+          className="mt-4 px-6 py-2 text-sm rounded-lg font-semibold bg-blue-500/80 hover:bg-blue-600 shadow-md shadow-blue-500/30 flex items-center gap-2"
+        >
+          <Mail size={18} />
+          Invite Friend
+        </motion.button>
+      )}
+
       {/* Start Button */}
       {playerCount === 2 && player1 === JwtUtils.getUsername() && (
         <motion.button
@@ -178,6 +192,13 @@ export default function CodingWaitingRoomPage() {
           Start Match 🚀
         </motion.button>
       )}
+
+      {/* Invite Modal */}
+      <InviteModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        roomCode={roomCode}
+      />
     </div>
   );
 }

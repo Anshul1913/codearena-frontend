@@ -85,34 +85,31 @@ export default function McqRoomPage() {
 
   const handleSubmit = async () => {
     try {
+
       console.log("Submitting:", answers);
 
       const result = await SubmissionApi.submitAnswers(
         answers,
         roomCode,
-        "MCQ",
+        "MCQ"
       );
 
       console.log("Result:", result);
 
       // Redirect to result page
       navigate(`/room/${roomCode}/result`, {
-        state: { result },
+        state: { result }
       });
+
     } catch (error) {
       console.error("Submission failed", error);
     }
   };
 
-  const formatTime = (seconds) => {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-
-    return `${min}:${sec < 10 ? "0" : ""}${sec}`;
-  };
   if (loading) {
     return <div className="text-center p-10">Loading Questions...</div>;
   }
+
   return (
     <div className="h-screen flex flex-col bg-bg text-gray-300 overflow-hidden">
       {/* HEADER */}

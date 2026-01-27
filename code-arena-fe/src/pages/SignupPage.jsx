@@ -9,23 +9,23 @@ export default function SignupPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "",
     password: "",
   });
 
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!form.name.trim()) newErrors.name = "Name is required.";
     if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
       newErrors.email = "Enter a valid email.";
-    if (!form.phone.match(/^[0-9]{10}$/))
-      newErrors.phone = "Enter a valid 10-digit phone number.";
     if (form.password.length < 6)
       newErrors.password = "Password must be at least 6 characters.";
 
@@ -39,22 +39,51 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-
-  const handleSubmit = async (e) => {
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      const response = await AuthApi.signupPlayer(form);
-      console.log("✅ Signup successful:", response);
-      toast.success("🎉 Signup successful! Please log in.");
-        navigate("/login");
-    //   alert("Signup successful! Please log in.");
-      // e.g., navigate("/login");
+      await AuthApi.requestSignupOtp(form.email);
+      console.log("✅ OTP requested successfully");
+      toast.success("📧 OTP sent to your email! Please check your inbox.");
+      setShowOtpInput(true);
     } catch (error) {
-      console.error("❌ Signup failed:", error);
-        toast.error(error.message || "Signup failed. Please try again.");
+      console.error("❌ OTP request failed:", error);
+      toast.error(error.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp.trim()) {
+      toast.error("Please enter the OTP.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const signupVerifyRequest = {
+        email: form.email,
+        otp: otp,
+        signupRequest: {
+          email: form.email,
+          password: form.password,
+          name: form.name,
+          role: "PLAYER",
+        },
+      };
+
+      const response = await AuthApi.verifySignupOtp(signupVerifyRequest);
+      console.log("✅ Signup successful:", response);
+      toast.success("🎉 Account created successfully! Please log in.");
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Signup verification failed:", error);
+      toast.error(error.message || "Invalid OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -81,112 +110,136 @@ export default function SignupPage() {
           </span>
         </h1>
         <h2 className="text-xl text-center font-semibold mb-6 text-muted">
-          Create your account
+          {showOtpInput ? "Verify Your Email" : "Create your account"}
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-sm mb-1 text-muted">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all ${
-                errors.name
-                  ? "border-error focus:ring-error/50"
-                  : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
-              }`}
-            />
-            {errors.name && (
-              <p className="text-error text-sm mt-1">{errors.name}</p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm mb-1 text-muted">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all ${
-                errors.email
-                  ? "border-error focus:ring-error/50"
-                  : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
-              }`}
-            />
-            {errors.email && (
-              <p className="text-error text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm mb-1 text-muted">Phone</label>
-            <input
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="9876543210"
-              className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all ${
-                errors.phone
-                  ? "border-error focus:ring-error/50"
-                  : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
-              }`}
-            />
-            {errors.phone && (
-              <p className="text-error text-sm mt-1">{errors.phone}</p>
-            )}
-          </div>
-
-          {/* Password with toggle */}
-          <div className="relative">
-            <label className="block text-sm mb-1 text-muted">Password</label>
-            <div className="relative">
+        {!showOtpInput ? (
+          <form onSubmit={handleRequestOtp} className="space-y-5">
+            {/* Name */}
+            <div>
+              <label className="block text-sm mb-1 text-muted">Full Name</label>
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={form.password}
+                type="text"
+                name="name"
+                value={form.name}
                 onChange={handleChange}
-                placeholder="********"
-                className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all pr-10 ${
-                  errors.password
+                placeholder="John Doe"
+                className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all ${errors.name
                     ? "border-error focus:ring-error/50"
                     : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
-                }`}
+                  }`}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2.5 text-muted hover:text-primary transition-colors bg-transparent border-none p-0 outline-none focus:ring-0 focus:outline-none"
-                style={{ background: "none" }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              {errors.name && (
+                <p className="text-error text-sm mt-1">{errors.name}</p>
+              )}
             </div>
-            {errors.password && (
-              <p className="text-error text-sm mt-1">{errors.password}</p>
-            )}
-          </div>
 
-          <button
-            type="submit"
-            disabled={!isFormValid || isSubmitting}
-            className={`w-full py-2 font-display font-semibold rounded-radius-lg transition-all shadow-shadow-soft hover:shadow-shadow-strong ${
-              isFormValid && !isSubmitting
-                ? "bg-gradient-to-r from-primary to-secondary text-white hover:scale-[1.02]"
-                : "bg-surface text-muted cursor-not-allowed"
-            }`}
-          >
-            {isSubmitting ? "Creating Account..." : "Sign Up"}
-          </button>
-        </form>
+            {/* Email */}
+            <div>
+              <label className="block text-sm mb-1 text-muted">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all ${errors.email
+                    ? "border-error focus:ring-error/50"
+                    : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
+                  }`}
+              />
+              {errors.email && (
+                <p className="text-error text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password with toggle */}
+            <div className="relative">
+              <label className="block text-sm mb-1 text-muted">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="********"
+                  className={`w-full px-4 py-2 rounded-radius-lg bg-bg/70 border text-text placeholder-muted outline-none transition-all pr-10 ${errors.password
+                      ? "border-error focus:ring-error/50"
+                      : "border-surface/50 focus:border-primary focus:ring-2 focus:ring-primary/50"
+                    }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-muted hover:text-primary transition-colors bg-transparent border-none p-0 outline-none focus:ring-0 focus:outline-none"
+                  style={{ background: "none" }}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-error text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isFormValid || loading}
+              className={`w-full py-2 font-display font-semibold rounded-radius-lg transition-all shadow-shadow-soft hover:shadow-shadow-strong ${isFormValid && !loading
+                  ? "bg-gradient-to-r from-primary to-secondary text-white hover:scale-[1.02]"
+                  : "bg-surface text-muted cursor-not-allowed"
+                }`}
+            >
+              {loading ? "Sending OTP..." : "Request OTP"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted">
+                We've sent a verification code to
+              </p>
+              <p className="text-primary font-semibold">{form.email}</p>
+            </div>
+
+            {/* OTP Input */}
+            <div>
+              <label className="block text-sm mb-1 text-muted">
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+                className="w-full px-4 py-2 rounded-radius-lg bg-bg/70 border border-surface/50 text-text placeholder-muted outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/50 text-center text-2xl tracking-widest"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !otp.trim()}
+              className={`w-full py-2 font-display font-semibold rounded-radius-lg transition-all shadow-shadow-soft hover:shadow-shadow-strong ${!loading && otp.trim()
+                  ? "bg-gradient-to-r from-primary to-secondary text-white hover:scale-[1.02]"
+                  : "bg-surface text-muted cursor-not-allowed"
+                }`}
+            >
+              {loading ? "Verifying..." : "Verify & Create Account"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowOtpInput(false);
+                setOtp("");
+              }}
+              className="w-full py-2 text-sm text-muted hover:text-primary transition-colors"
+            >
+              ← Back to signup form
+            </button>
+          </form>
+        )}
 
         <p className="text-center text-sm text-muted mt-5">
           Already have an account?{" "}

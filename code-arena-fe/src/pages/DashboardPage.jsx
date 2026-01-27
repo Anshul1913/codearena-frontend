@@ -15,45 +15,45 @@ export default function DashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const navigate = useNavigate();
-  const handleCreateRoom = async(roomData) => {
-    
+  const handleCreateRoom = async (roomData) => {
+
     try {
-    console.log("Creating room with:", roomData);
-    const response = await RoomApi.createRoom(roomData);
-      if(response.data.questionType === "MCQ Question"){
-        
-        navigate("/mcq-waiting-room/"+response.data.roomCode);
+      console.log("Creating room with:", roomData);
+      const response = await RoomApi.createRoom(roomData);
+      if (response.data.questionType === "MCQ Question") {
+
+        navigate("/mcq-waiting-room/" + response.data.roomCode);
         // navigate("/mcq-room/"+response.data.roomCode);
-      }else{
-        navigate("/coding-waiting-room/"+response.data.roomCode);
+      } else {
+        navigate("/coding-waiting-room/" + response.data.roomCode);
       }
-    toast.success("🎉 Room created successfully!");
-    console.log("Room creation response:", response);
+      toast.success("🎉 Room created successfully!");
+      console.log("Room creation response:", response);
 
-    // Optional: navigate or update UI
-    // navigate(`/room/${response.roomId}`);
-   } catch (error) {
-    console.error("❌ Error creating room:", error);
+      // Optional: navigate or update UI
+      // navigate(`/room/${response.roomId}`);
+    } catch (error) {
+      console.error("❌ Error creating room:", error);
 
-    // Try to extract readable message from backend
-    const message =
-      error?.response?.data?.message ||
-      "Something went wrong while creating the room.";
+      // Try to extract readable message from backend
+      const message =
+        error?.response?.data?.message ||
+        "Something went wrong while creating the room.";
 
-    toast.error(`⚠️ ${message}`);
-  }
+      toast.error(`⚠️ ${message}`);
+    }
   };
 
-  const handleJoinRoom = async(roomId) => {
+  const handleJoinRoom = async (roomId) => {
     console.log("Joining room:", roomId);
     try {
-    const response = await RoomApi.joinRoom(roomId);
-    console.log("Join room response:", response);
-    if(response.questionType === "MCQ Question"){
-      navigate("/mcq-waiting-room/"+roomId);
-    }else{
-      navigate("/coding-waiting-room/"+roomId);
-    }
+      const response = await RoomApi.joinRoom(roomId);
+      console.log("Join room response:", response);
+      if (response.questionType === "MCQ Question") {
+        navigate("/mcq-waiting-room/" + roomId);
+      } else {
+        navigate("/coding-waiting-room/" + roomId);
+      }
     } catch (error) {
       console.error("❌ Error joining room:", error);
     }
@@ -90,7 +90,7 @@ export default function DashboardPage() {
         <ActionButtons
           onCreate={() => setShowCreateModal(true)}
           onJoin={() => setShowJoinModal(true)}
-          onPractice={() => console.log("Practice Mode")}
+          onPractice={() => navigate("/practice")}
         />
         <CreateRoomModal
           isOpen={showCreateModal}
