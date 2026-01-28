@@ -33,103 +33,85 @@ export default function RoomPage() {
     java: "15.0.2",
   };
 
-  
-  
   useEffect(() => {
+    if (!roomCode) return;
 
-  if (fetched.current) return;
-  fetched.current = true;
+    fetched.current = false; // reset on room change
+    loadRoom();
+  }, [roomCode]);
+  useEffect(() => {
+    if (timeLeft === null) return;
 
-  loadRoom();
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (!autoExitTriggered.current) {
+            autoExitTriggered.current = true;
+            handleEndTest();
+          }
 
-}, [roomCode]);
-
-
-useEffect(() => {
-
-  if (timeLeft === null) return;
-
-  const interval = setInterval(() => {
-
-    setTimeLeft(prev => {
-
-      if (prev <= 1) {
-
-        clearInterval(interval);
-
-        if (!autoExitTriggered.current) {
-          autoExitTriggered.current = true;
-          handleEndTest();
+          return 0;
         }
 
-        return 0;
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const loadRoom = async () => {
+    try {
+      const [roomRes, questionRes, statusRes] = await Promise.all([
+        RoomApi.getRoomDetails(roomCode),
+        RoomApi.fetchRoomQuestionWithTestCases(roomCode),
+        RoomApi.fetchRoomQuestionStatus(roomCode),
+      ]);
+      console.log("ROOM FULL:", roomRes.data);
+      console.log("QUESTION FULL:", questionRes);
+      console.log("STATUS FULL:", statusRes);
+
+      // ---------- TIMER ----------
+
+      const startedAt = new Date(roomRes.data.startedAt).getTime();
+      const expiryMinutes = roomRes.data.expiryDuration;
+
+      const endTime = startedAt + expiryMinutes * 60 * 1000;
+      const now = Date.now();
+
+      const remainingSeconds = Math.max(Math.floor((endTime - now) / 1000), 0);
+
+      setRoomDetails(roomRes.data);
+      setTimeLeft(remainingSeconds);
+
+      // ---------- MERGE STATUS ----------
+
+      const statusMap = {};
+
+      statusRes.forEach((s) => {
+        statusMap[s.questionId] = s;
+      });
+
+      const mergedQuestions = questionRes.map((q) => ({
+        ...q,
+        solved: statusMap[q.id]?.solved || false,
+        attempts: statusMap[q.id]?.attempts || 0,
+      }));
+
+      setQuestions(mergedQuestions);
+
+      // ---------- DEFAULT QUESTION ----------
+
+      if (mergedQuestions.length > 0) {
+        const first = mergedQuestions[0];
+
+        setStarterCode(first.starterCodes || []);
+        setCode(first.starterCodes?.[0]?.codeTemplate || "");
       }
-
-      return prev - 1;
-    });
-
-  }, 1000);
-
-  return () => clearInterval(interval);
-
-}, [timeLeft !== null]);
-
-
-const loadRoom = async () => {
-
-  try {
-
-    const [
-      roomRes,
-      questionRes,
-      statusRes
-    ] = await Promise.all([
-      RoomApi.getRoomDetails(roomCode),
-      RoomApi.fetchRoomQuestionWithTestCases(roomCode),
-      RoomApi.fetchRoomQuestionStatus(roomCode)
-    ]);
-
-    // ---------- TIMER ----------
-
-    const startedAt = new Date(roomRes.data.startedAt).getTime();
-    const durationMs = roomRes.data.expiryDuration * 60 * 1000;
-
-    const endTime = startedAt + durationMs;
-    const now = Date.now();
-
-    const remainingSeconds =
-      Math.max(Math.floor((endTime - now) / 1000), 0);
-
-    setTimeLeft(remainingSeconds);
-
-    // ---------- MERGE STATUS ----------
-
-    const statusMap = {};
-
-    statusRes.forEach(s => {
-      statusMap[s.questionId] = s;
-    });
-
-    const mergedQuestions = questionRes.map(q => ({
-      ...q,
-      solved: statusMap[q.id]?.solved || false,
-      attempts: statusMap[q.id]?.attempts || 0
-    }));
-
-    setQuestions(mergedQuestions);
-
-    // ---------- DEFAULT QUESTION ----------
-
-    if (mergedQuestions.length > 0) {
-      setStarterCode(mergedQuestions[0].starterCodes);
-      setCode(mergedQuestions[0].starterCodes?.[0]?.codeTemplate || "");
+    } catch (err) {
+      console.error("Room load error", err);
     }
-
-  } catch (err) {
-    console.error("Room load error", err);
-  }
-};
-
+  };
 
   const mergeQuestionStatus = (questions, statusList) => {
     const statusMap = {};
@@ -150,47 +132,6 @@ const loadRoom = async () => {
 
     setQuestions(merged);
   };
-
-  // const fetchRoomDetails = async () => {
-  //   try {
-  //     const response = await RoomApi.getRoomDetails(roomCode);
-
-  //     const startedAt = new Date(response.data.startedAt).getTime();
-
-  //     const durationMs = response.data.expiryDuration * 60 * 1000;
-
-  //     const endTime = startedAt + durationMs;
-
-  //     const now = Date.now();
-
-  //     const remainingSeconds = Math.max(Math.floor((endTime - now) / 1000), 0);
-
-  //     setRoomDetails(response.data);
-  //     setTimeLeft(remainingSeconds);
-  //     // small delay guarantees state sync
-  //     setTimeout(() => setTimerReady(true), 0);
-  //   } catch (error) {
-  //     console.error("Error fetching room details:", error);
-  //   }
-  // };
-
-  // const fetchQuestions = async () => {
-  //   try {
-  //     const response = await RoomApi.fetchRoomQuestionWithTestCases(roomCode);
-
-  //     console.log("Fetched Questions:", response);
-
-  //     setQuestions(response);
-
-  //     if (response.length > 0) {
-  //       setStarterCode(response[0].starterCodes);
-  //       setCode(response[0].starterCodes?.[0]?.codeTemplate || "");
-  //     }
-      
-  //   } catch (error) {
-  //     console.error("Error fetching questions:", error);
-  //   }
-  // };
 
   // ================= QUESTION CHANGE =================
 
@@ -266,7 +207,7 @@ const loadRoom = async () => {
     }
   };
   const handleEndTest = async () => {
-    // alert("You have ended the test session.");
+    
   };
   // ================= UI =================
 

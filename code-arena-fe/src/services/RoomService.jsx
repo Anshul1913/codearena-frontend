@@ -98,5 +98,15 @@ const RoomApi = {
       throw error;
     }
   },
+  endTestSession: async (roomCode) => {
+    try {
+      const response = await apiInterceptor.post(`/rooms/${roomCode}/end-test`);
+      console.info("✅ Ended test session successfully:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error ending test session:", error);
+      throw error;
+    }
+  },
 };
 export default RoomApi;
