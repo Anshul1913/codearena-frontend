@@ -19,8 +19,26 @@ export default function McqRoomPage() {
   document.addEventListener("copy", (e) => e.preventDefault());
   document.addEventListener("paste", (e) => e.preventDefault());
   const [timeLeft, setTimeLeft] = useState(null);
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState({}); // { questionIndex: optionIndex }
+  const navigate = useNavigate();
 
   const autoExitTriggered = useRef(false);
+  
+
+  const handleEndTest = () => {
+    console.log("end test");
+
+    // alert("Time is up! The test will be submitted automatically.");
+    // handleSubmit();
+  };
+
+  useEffect(() => {
+    if (roomCode) {
+      fetchQuestions(roomCode);
+      fetchRoomDetails();
+    }
+  }, [roomCode]);
   useEffect(() => {
     if (timeLeft === null) return;
 
@@ -44,26 +62,25 @@ export default function McqRoomPage() {
     return () => clearInterval(interval);
   }, [timeLeft !== null]);
 
-  const handleEndTest = () => {
-    console.log("end test");
-
-    // alert("Time is up! The test will be submitted automatically.");
-    // handleSubmit();
-  };
-
-  useEffect(() => {
-    if (roomCode) {
-      fetchQuestions(roomCode);
-      fetchRoomDetails();
-    }
-  }, [roomCode]);
-
   const fetchRoomDetails = async () => {
     try {
-      const roomDetails = await RoomApi.getRoomDetails(roomCode);
-      console.log(roomDetails);
+      const res = await RoomApi.getRoomDetails(roomCode);
+         const data = res.data;
 
-      setRoomDetails(roomDetails);
+    const startedAt = new Date(data.startedAt).getTime();
+    const expiryMinutes = data.expiryDuration;
+
+    const endTime = startedAt + expiryMinutes * 60 * 1000;
+    const now = Date.now();
+
+    const remainingSeconds = Math.max(
+      Math.floor((endTime - now) / 1000),
+      0
+    );
+
+    setRoomDetails(data);
+    setTimeLeft(remainingSeconds);
+      setRoomDetails(roomDetails.data);
     } catch (error) {
       console.error(error);
     }
@@ -79,9 +96,6 @@ export default function McqRoomPage() {
     }
   };
 
-  const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState({}); // { questionIndex: optionIndex }
-  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
@@ -193,7 +207,7 @@ export default function McqRoomPage() {
           <>
             {/* Chat Header */}
             <div className="flex justify-between items-center p-3 border-b">
-              <span className="font-semibold text-primary">Room Chat</span>
+              <span className="font-semibold text-primary"></span>
 
               <button
                 onClick={() => setShowChat(false)}
