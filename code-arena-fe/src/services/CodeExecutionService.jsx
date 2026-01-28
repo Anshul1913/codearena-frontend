@@ -5,7 +5,7 @@ const CodeExecutionApi = {
     try {
       console.log("Payload to be send ", codeExecutionDTO);
 
-      const response = await apiInterceptor.post("/execute", codeExecutionDTO);
+      const response = await apiInterceptor.post("/run", codeExecutionDTO);
 
       console.info("✅ Code executed:", response.data);
       return response.data;

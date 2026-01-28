@@ -80,7 +80,7 @@ const RoomApi = {
   },
   fetchRoomQuestionWithTestCases: async (roomCode) => {
     try {
-      const response = await apiInterceptor.get(`/rooms/${roomCode}/questions`);
+      const response = await apiInterceptor.get(`/rooms/${roomCode}/coding-questions`);
       console.info("✅ Fetched room question with test cases successfully:", response.data);
       return response.data;
     } catch (error) {
