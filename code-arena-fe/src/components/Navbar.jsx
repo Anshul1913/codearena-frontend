@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import { ChevronDown, LogOut, User, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import AuthApi from "../services/AuthService";
 
 export default function Navbar({ user }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await AuthApi.logout();
+      toast.success("Logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
 
   return (
     <nav className="flex justify-between items-center px-8 py-5 border-b border-border bg-surface/60 backdrop-blur-lg shadow-shadow-soft relative z-50">
@@ -60,7 +75,10 @@ export default function Navbar({ user }) {
                   <button className="flex items-center gap-2 px-4 py-3 hover:bg-surface/80 transition-colors text-left">
                     <User size={16} /> View Profile
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-3 hover:bg-surface/80 transition-colors text-left">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-surface/80 transition-colors text-left text-error hover:text-error"
+                  >
                     <LogOut size={16} /> Logout
                   </button>
                 </div>

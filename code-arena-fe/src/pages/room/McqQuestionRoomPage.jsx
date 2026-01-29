@@ -24,7 +24,7 @@ export default function McqRoomPage() {
   const navigate = useNavigate();
 
   const autoExitTriggered = useRef(false);
-  
+
 
   const handleEndTest = () => {
     console.log("end test");
@@ -65,22 +65,26 @@ export default function McqRoomPage() {
   const fetchRoomDetails = async () => {
     try {
       const res = await RoomApi.getRoomDetails(roomCode);
-         const data = res.data;
+      const data = res.data;
 
-    const startedAt = new Date(data.startedAt).getTime();
-    const expiryMinutes = data.expiryDuration;
+      const startedAt = new Date(data.startedAt).getTime();
+      const expiryMinutes = data.expiryDuration;
 
-    const endTime = startedAt + expiryMinutes * 60 * 1000;
-    const now = Date.now();
+      const endTime = startedAt + expiryMinutes * 60 * 1000;
+      const now = Date.now();
 
-    const remainingSeconds = Math.max(
-      Math.floor((endTime - now) / 1000),
-      0
-    );
+      const remainingSeconds = Math.max(
+        Math.floor((endTime - now) / 1000),
+        0
+      );
 
-    setRoomDetails(data);
-    setTimeLeft(remainingSeconds);
-      setRoomDetails(roomDetails.data);
+      setRoomDetails(data);
+      if (data.startedAt) {
+        setTimeLeft(remainingSeconds);
+      } else {
+        console.warn("Room status ACTIVE but startedAt is NULL");
+        setTimeLeft(expiryMinutes * 60); // Fallback to full duration
+      }
     } catch (error) {
       console.error(error);
     }
@@ -110,6 +114,13 @@ export default function McqRoomPage() {
 
       console.log("Result:", result);
 
+      // Also mark as ended in the room to trigger finalization if both are done
+      try {
+        await RoomApi.endTestSession(roomCode);
+      } catch (e) {
+        console.error("Failed to end test session", e);
+      }
+
       // Redirect to result page
       navigate(`/room/${roomCode}/result`, {
         state: { result }
@@ -124,7 +135,7 @@ export default function McqRoomPage() {
     return <div className="text-center p-10">Loading Questions...</div>;
   }
 
-  
+
 
   const formatTime = (seconds) => {
     const min = Math.floor(seconds / 60);

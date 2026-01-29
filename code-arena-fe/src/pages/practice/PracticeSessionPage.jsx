@@ -5,6 +5,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Clock, SkipForward, CheckCircle, XCircle } from "lucide-react";
 import PracticeApi from "../../services/PracticeService";
+import CodingEnvironment from "../../components/editor/CodingEnvironment";
+import CodeExecutionApi from "../../services/CodeExecutionService";
 
 export default function PracticeSessionPage() {
     const { sessionId } = useParams();
@@ -13,10 +15,20 @@ export default function PracticeSessionPage() {
     const [currentQuestion, setCurrentQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [answer, setAnswer] = useState("");
+    const [answer, setAnswer] = useState(""); // This is the code for editor
     const [selectedOption, setSelectedOption] = useState(null);
-    const [language, setLanguage] = useState("java"); // Language selection for coding
+    const [language, setLanguage] = useState("java");
     const [timeRemaining, setTimeRemaining] = useState(0);
+    const [output, setOutput] = useState("");
+    const [isRunning, setIsRunning] = useState(false);
+    const [questionStartTime, setQuestionStartTime] = useState(Date.now()); // Track question start time
+
+    const languageVersionMap = {
+        javascript: "18.15.0",
+        python: "3.10.0",
+        cpp: "10.2.0",
+        java: "15.0.2",
+    };
 
     useEffect(() => {
         loadSession();
@@ -34,14 +46,11 @@ export default function PracticeSessionPage() {
     const loadSession = async () => {
         try {
             const response = await PracticeApi.getSessionDetails(sessionId);
-            console.log("Session response:", response);
-            // Backend returns { success, message, data }
             if (response && response.data) {
                 setSession(response.data);
                 setTimeRemaining(response.data.remainingTimeMinutes * 60);
                 await loadNextQuestion();
             } else {
-                console.error("Invalid session response:", response);
                 toast.error("Failed to load practice session.");
                 navigate("/practice");
             }
@@ -57,27 +66,46 @@ export default function PracticeSessionPage() {
     const loadNextQuestion = async () => {
         try {
             const response = await PracticeApi.getNextQuestion(sessionId);
-            console.log("Next question response:", response);
-            // Backend returns { success, message, data }
             if (response && response.data) {
                 setCurrentQuestion(response.data);
-                setAnswer("");
+                setAnswer(response.data.starterCodes?.[0]?.codeTemplate || "");
                 setSelectedOption(null);
+                setOutput("");
+                setQuestionStartTime(Date.now()); // Reset timer for new question
             } else {
-                console.log("No more questions, ending session");
-                // No more questions, end session
                 handleEndSession();
             }
         } catch (error) {
             console.error("Failed to load next question:", error);
-
-            // Check if it's an authentication error
             if (error.response?.status === 401) {
                 toast.error("Session expired. Please log in again.");
-                // Redirect handled by interceptor
             } else {
                 toast.error("Failed to load question. Please try again.");
             }
+        }
+    };
+
+    const handleRunCode = async () => {
+        if (!currentQuestion || currentQuestion.questionType !== "CODING") return;
+
+        setIsRunning(true);
+        try {
+            const payload = {
+                language,
+                version: languageVersionMap[language],
+                code: answer,
+                codingQuestionId: currentQuestion.questionId,
+            };
+
+            const result = await CodeExecutionApi.executeCode(payload);
+            if (result.stdout) setOutput(result.stdout);
+            else if (result.stderr) setOutput(result.stderr);
+            else setOutput("No Output");
+        } catch (error) {
+            console.error(error);
+            setOutput("❌ Execution Error");
+        } finally {
+            setIsRunning(false);
         }
     };
 
@@ -96,21 +124,22 @@ export default function PracticeSessionPage() {
 
         setSubmitting(true);
         try {
+            // Calculate time taken for this question
+            const timeTakenSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
+
             const submissionDTO = {
                 sessionId: sessionId,
                 questionId: currentQuestion.questionId,
                 questionType: currentQuestion.questionType,
-                language: isCoding ? language : undefined, // ✅ Use selected language
+                language: isCoding ? language : undefined,
                 sourceCode: isCoding ? answer : undefined,
                 selectedOptionId: !isCoding ? selectedOption : undefined,
-                timeTakenSeconds: 0,
+                timeTakenSeconds: timeTakenSeconds,
                 confidenceScore: 0.5,
                 attemptsCount: 1,
             };
 
             const response = await PracticeApi.submitCurrentQuestion(submissionDTO);
-            console.log("Submit response:", response);
-            // Backend returns { success, message, data }
             if (response && response.data) {
                 const result = response.data;
                 if (result.correct) {
@@ -119,22 +148,15 @@ export default function PracticeSessionPage() {
                     toast.error("❌ Incorrect answer.");
                 }
 
-                // Check if there are more questions
                 if (result.nextQuestionAvailable) {
                     await loadNextQuestion();
                 } else {
-                    // Session complete
                     handleEndSession();
                 }
             }
         } catch (error) {
             console.error("Failed to submit answer:", error);
-
-            if (error.response?.status === 401) {
-                toast.error("Session expired. Please log in again.");
-            } else {
-                toast.error(error.message || "Failed to submit answer. Please try again.");
-            }
+            toast.error(error.message || "Failed to submit answer. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -144,22 +166,17 @@ export default function PracticeSessionPage() {
         setSubmitting(true);
         try {
             const response = await PracticeApi.skipQuestion(sessionId);
-            console.log("Skip response:", response);
-            // Backend returns { success, message, data }
             if (response && response.data) {
                 setCurrentQuestion(response.data);
-                setAnswer("");
+                setAnswer(response.data.starterCodes?.[0]?.codeTemplate || "");
                 setSelectedOption(null);
+                setOutput("");
+                setQuestionStartTime(Date.now()); // Reset timer for new question
                 toast.info("⏭️ Question skipped.");
             }
         } catch (error) {
             console.error("Failed to skip question:", error);
-
-            if (error.response?.status === 401) {
-                toast.error("Session expired. Please log in again.");
-            } else {
-                toast.error("Failed to skip question. Please try again.");
-            }
+            toast.error("Failed to skip question. Please try again.");
         } finally {
             setSubmitting(false);
         }
@@ -168,8 +185,6 @@ export default function PracticeSessionPage() {
     const handleEndSession = async () => {
         try {
             const response = await PracticeApi.endPracticeSession(sessionId);
-            console.log("End session response:", response);
-            // Backend returns { success, message, data }
             if (response && response.data) {
                 toast.success("🎉 Practice session completed!");
                 navigate(`/practice/result/${sessionId}`);
@@ -215,6 +230,45 @@ export default function PracticeSessionPage() {
 
     const isCoding = currentQuestion.questionType === "CODING";
 
+    if (isCoding) {
+        return (
+            <CodingEnvironment
+                question={currentQuestion}
+                code={answer}
+                setCode={setAnswer}
+                language={language}
+                setLanguage={setLanguage}
+                starterCode={currentQuestion.starterCodes}
+                onRun={handleRunCode}
+                onSubmit={handleSubmitAnswer}
+                isRunning={isRunning || submitting}
+                onEndTest={handleEndSession}
+                output={output}
+                timeLeft={timeRemaining}
+                formatTime={formatTime}
+                hideNavigation={true}
+                showEndTest={false}
+                renderHeaderRight={() => (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSkipQuestion}
+                            disabled={submitting}
+                            className="px-3 py-1 bg-surface-light text-muted hover:text-white rounded text-sm transition-colors"
+                        >
+                            Skip
+                        </button>
+                        <button
+                            onClick={handleEndSession}
+                            className="px-3 py-1 bg-error/10 text-error hover:bg-error/20 rounded text-sm transition-colors"
+                        >
+                            End Session
+                        </button>
+                    </div>
+                )}
+            />
+        );
+    }
+
     return (
         <div className="min-h-screen bg-bg text-text p-6">
             <div className="max-w-6xl mx-auto">
@@ -251,75 +305,21 @@ export default function PracticeSessionPage() {
                         <p className="text-muted whitespace-pre-wrap">{currentQuestion.description}</p>
                     </div>
 
-                    {isCoding ? (
-                        <>
-                            {currentQuestion.inputFormat && (
-                                <div className="mb-4">
-                                    <h3 className="font-semibold mb-2">Input Format:</h3>
-                                    <p className="text-muted text-sm">{currentQuestion.inputFormat}</p>
-                                </div>
-                            )}
-                            {currentQuestion.outputFormat && (
-                                <div className="mb-4">
-                                    <h3 className="font-semibold mb-2">Output Format:</h3>
-                                    <p className="text-muted text-sm">{currentQuestion.outputFormat}</p>
-                                </div>
-                            )}
-                            {currentQuestion.constraints && (
-                                <div className="mb-4">
-                                    <h3 className="font-semibold mb-2">Constraints:</h3>
-                                    <p className="text-muted text-sm">{currentQuestion.constraints}</p>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="space-y-3 mt-6">
-                            {currentQuestion.options?.map((option) => (
-                                <button
-                                    key={option.id}
-                                    onClick={() => setSelectedOption(option.id)}
-                                    className={`w-full text-left p-4 rounded-radius-lg border transition-all ${selectedOption === option.id
-                                        ? "border-primary bg-primary/10"
-                                        : "border-surface/50 bg-bg/50 hover:border-primary/50"
-                                        }`}
-                                >
-                                    {option.optionText}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </motion.div>
-
-                {/* Answer Input (for coding questions) */}
-                {isCoding && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-surface/80 border border-surface/50 rounded-radius-xl p-6 mb-6"
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold">Your Solution:</h3>
-                            <select
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
-                                className="px-3 py-1.5 bg-bg/70 border border-surface/50 rounded-radius-lg text-sm outline-none focus:border-primary"
+                    <div className="space-y-3 mt-6">
+                        {currentQuestion.options?.map((option) => (
+                            <button
+                                key={option.id}
+                                onClick={() => setSelectedOption(option.id)}
+                                className={`w-full text-left p-4 rounded-radius-lg border transition-all ${selectedOption === option.id
+                                    ? "border-primary bg-primary/10"
+                                    : "border-surface/50 bg-bg/50 hover:border-primary/50"
+                                    }`}
                             >
-                                <option value="java">Java</option>
-                                <option value="python">Python</option>
-                                <option value="cpp">C++</option>
-                                <option value="javascript">JavaScript</option>
-                            </select>
-                        </div>
-                        <textarea
-                            value={answer}
-                            onChange={(e) => setAnswer(e.target.value)}
-                            placeholder="Write your code here..."
-                            rows={15}
-                            className="w-full px-4 py-3 rounded-radius-lg bg-bg/70 border border-surface/50 text-text font-mono text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/50 resize-none"
-                        />
-                    </motion.div>
-                )}
+                                {option.optionText}
+                            </button>
+                        ))}
+                    </div>
+                </motion.div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">

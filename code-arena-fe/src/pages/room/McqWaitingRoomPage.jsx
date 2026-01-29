@@ -82,8 +82,13 @@ export default function McqWaitingRoomPage() {
   };
 
   const startMatch = () => {
-    startMatchSocket(roomCode);
-    navigate(`/mcq-room/${roomCode}`, { replace: true });
+    try {
+      console.log("Starting match for room:", roomCode);
+      startMatchSocket(roomCode);
+      navigate(`/mcq-room/${roomCode}`, { replace: true });
+    } catch (err) {
+      console.error("Error in startMatch:", err);
+    }
   };
 
   return (

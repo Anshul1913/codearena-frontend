@@ -96,6 +96,30 @@ const AuthApi = {
       handleApiError(error, "change password");
     }
   },
+
+  /**
+   * 🚪 Logout
+   * @returns {Promise<Object>} response.data
+   */
+  logout: async () => {
+    try {
+      const response = await apiInterceptor.post("/auth/logout");
+      console.info("✅ Logout successful:", response.data);
+
+      // Clear JWT token from cookies
+      document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      // Clear any localStorage data
+      localStorage.clear();
+
+      return response.data;
+    } catch (error) {
+      // Even if API call fails, clear local data
+      document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      localStorage.clear();
+      handleApiError(error, "logout");
+    }
+  },
 };
 
 /**

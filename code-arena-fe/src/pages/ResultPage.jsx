@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { webconnectSocket, subscribeToRoomStatus } from "../services/connectSocket";
+import JwtUtils from "../utils/security/JwtUtils";
+import RoomApi from "../services/RoomService";
 
 export default function RoomResultPage() {
   const { roomCode } = useParams();
@@ -9,34 +11,99 @@ export default function RoomResultPage() {
   const initialResult = location.state?.result;
 
   const [result, setResult] = useState(initialResult);
-  const [waiting, setWaiting] = useState(!initialResult?.winner);
-  const [winner, setWinner] = useState(initialResult?.winner);
+  const [waiting, setWaiting] = useState(!initialResult?.winner || initialResult?.winner === "PENDING" || initialResult?.winner === "WAITING");
+  const [winner, setWinner] = useState(initialResult?.winner && initialResult?.winner !== "PENDING" && initialResult?.winner !== "WAITING" ? initialResult.winner : null);
+  const [roomQuestions, setRoomQuestions] = useState([]);
+  const [questionStatuses, setQuestionStatuses] = useState([]);
 
   useEffect(() => {
-    // If we already have a winner, no need to connect
-    if (result?.winner) {
+    console.log("ResultPage mounted for room:", roomCode);
+
+    // If we have a definite winner, we can stop waiting, but we still might want WS for other things
+    // However, if winner is PENDING or WAITING, we MUST connect.
+    const isPending = !result?.winner || result?.winner === "PENDING" || result?.winner === "WAITING";
+
+    if (!isPending) {
       setWaiting(false);
-      return;
     }
 
-    // Connect to WebSocket to listen for match completion
-    const socket = webconnectSocket(() => {
-      subscribeToRoomStatus(roomCode, (data) => {
-        if (data.event === "MATCH_COMPLETED") {
-          setWinner(data.winner);
-          setWaiting(false);
-          // Determine if it was a tie
-          if (data.message.includes("Tie")) {
-            setWinner("TIE");
+    // Always fetch questions and status
+    fetchQuestionsInfo();
+    fetchRoomStatus();
+
+    // Connect to WebSocket to listen for match completion if pending
+    let socket = null;
+    if (isPending) {
+      console.log("Match is pending, connecting to WebSocket...");
+      socket = webconnectSocket(() => {
+        console.log("WebSocket connected, subscribing to room status...");
+        subscribeToRoomStatus(roomCode, (data) => {
+          console.log("Received WebSocket event:", data);
+          if (data.event === "MATCH_COMPLETED") {
+            console.log("Match completed event received! Winner:", data.winner);
+            setWinner(data.winner);
+            setWaiting(false);
+            const currentUsername = JwtUtils.getUsername();
+            if (data.player1 === currentUsername || data.player2 === currentUsername) {
+              const isPlayer1 = data.player1 === currentUsername;
+              setResult(prev => ({
+                ...prev,
+                score: isPlayer1 ? data.player1Score : data.player2Score,
+                winner: data.winner
+              }));
+            }
           }
-        }
+        });
       });
-    });
+    }
+
+    // Fallback polling if still waiting after 2 seconds, and every 5 seconds thereafter
+    let pollInterval = null;
+    if (isPending) {
+      pollInterval = setInterval(() => {
+        if (waiting) {
+          console.log("Still waiting... polling for status update...");
+          fetchRoomStatus();
+        }
+      }, 5000);
+    }
 
     return () => {
+      console.log("ResultPage unmounting, cleaning up...");
       if (socket) socket.deactivate();
+      if (pollInterval) clearInterval(pollInterval);
     };
-  }, [roomCode, result]);
+  }, [roomCode, waiting]); // Re-run if waiting changes or roomCode changes
+
+  const fetchRoomStatus = async () => {
+    try {
+      console.log("Fetching room details for status update...");
+      const response = await RoomApi.getRoomDetails(roomCode);
+      const roomData = response.data; // API returns { success, message, data: { ...roomInfo } }
+      console.log("Room details fetched:", roomData?.status, roomData?.winner);
+      if (roomData?.status === "COMPLETED") {
+        setWinner(roomData.winner || "TIE");
+        setWaiting(false);
+        setResult(prev => ({
+          ...prev,
+          winner: roomData.winner || "TIE"
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching room status:", err);
+    }
+  };
+
+  const fetchQuestionsInfo = async () => {
+    try {
+      const questions = await RoomApi.roomQuestions(roomCode);
+      const statuses = await RoomApi.fetchRoomQuestionStatus(roomCode);
+      setRoomQuestions(questions);
+      setQuestionStatuses(statuses);
+    } catch (err) {
+      console.error("Error fetching questions info:", err);
+    }
+  };
 
   if (!result) {
     return <div className="p-10 text-center text-white"><h2>No Result Found</h2></div>;
@@ -62,30 +129,30 @@ export default function RoomResultPage() {
             winner === "TIE" ? (
               <div className="text-4xl font-black text-yellow-400 mb-2">IT'S A TIE! 🤝</div>
             ) : (
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center w-full">
                 <span className="text-gray-400 text-sm uppercase tracking-widest mb-1">Winner</span>
-                <span className="text-4xl font-black text-green-400">{winner} 🏆</span>
+                <span className="text-4xl font-black text-green-400 truncate max-w-full">{winner} 🏆</span>
               </div>
             )
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-left bg-black/20 p-4 rounded-xl">
+        <div className="grid grid-cols-2 gap-4 text-left bg-black/20 p-4 rounded-xl mb-6">
           <div>
             <p className="text-xs text-gray-400">Your Score</p>
-            <p className="text-xl font-bold">{result.score}</p>
+            <p className="text-xl font-bold">{result.score ?? questionStatuses.filter(s => s.solved).length}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">Correct Answers</p>
-            <p className="text-xl font-bold">{result.correctAnswers}</p>
+            <p className="text-xl font-bold">{result.correctAnswers ?? questionStatuses.filter(s => s.solved).length}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">Time Taken</p>
-            <p className="text-xl font-bold">{result.timeTaken}s</p>
+            <p className="text-xl font-bold">{result.timeTaken ?? 0}s</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">Total Questions</p>
-            <p className="text-xl font-bold">{result.totalQuestions}</p>
+            <p className="text-xl font-bold">{result.totalQuestions || roomQuestions.length || 0}</p>
           </div>
         </div>
 

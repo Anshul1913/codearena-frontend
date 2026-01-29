@@ -196,23 +196,25 @@ export default function PracticeSetupPage() {
                             />
                         </div>
 
-                        {/* Difficulty Preference */}
-                        <div>
-                            <label className="block text-sm mb-2 text-muted flex items-center gap-2">
-                                <Target size={16} />
-                                Difficulty Preference
-                            </label>
-                            <select
-                                name="difficultyPreference"
-                                value={form.difficultyPreference}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 rounded-radius-lg bg-bg/70 border border-surface/50 text-text outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/50"
-                            >
-                                <option value="EASY">Easy</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HARD">Hard</option>
-                            </select>
-                        </div>
+                        {/* Difficulty Preference - Only for CODING */}
+                        {form.questionType === "CODING" && (
+                            <div>
+                                <label className="block text-sm mb-2 text-muted flex items-center gap-2">
+                                    <Target size={16} />
+                                    Difficulty Preference
+                                </label>
+                                <select
+                                    name="difficultyPreference"
+                                    value={form.difficultyPreference}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 rounded-radius-lg bg-bg/70 border border-surface/50 text-text outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/50"
+                                >
+                                    <option value="EASY">Easy</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HARD">Hard</option>
+                                </select>
+                            </div>
+                        )}
 
                         {/* Topic (Optional) */}
                         <div>

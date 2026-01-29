@@ -11,6 +11,7 @@ export default function CodeEditor({
   onSubmit,
   isRunning,
   onEndTest,
+  showEndTest = true, // Default to true to maintain backward compatibility
 }) {
   const [version, setVersion] = useState("-");
 
@@ -85,12 +86,16 @@ export default function CodeEditor({
           >
             Submit
           </button>
-           <button
-            onClick={onEndTest}
-            className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:opacity-90"
-          >
-            End Test
-          </button>
+
+          {/* END TEST BUTTON - Only shown when showEndTest is true */}
+          {showEndTest && onEndTest && (
+            <button
+              onClick={onEndTest}
+              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:opacity-90"
+            >
+              End Test
+            </button>
+          )}
         </div>
 
         {/* RIGHT SIDE */}

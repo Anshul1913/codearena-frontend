@@ -48,9 +48,9 @@ const RoomApi = {
       throw error;
     }
   },
-  startRoom: async () => {
+  startRoom: async (roomCode) => {
     try {
-      const response = await apiInterceptor.post(`/rooms/start`);
+      const response = await apiInterceptor.post(`/rooms/start?roomCode=${roomCode}`);
       console.info("✅ Fetched Questions details successfully:", response.data);
       return response.data;
     } catch (error) {
@@ -100,7 +100,7 @@ const RoomApi = {
   },
   endTestSession: async (roomCode) => {
     try {
-      const response = await apiInterceptor.post(`/rooms/${roomCode}/end-test`);
+      const response = await apiInterceptor.post(`/rooms/end-test/${roomCode}`);
       console.info("✅ Ended test session successfully:", response.data);
       return response.data;
     } catch (error) {
