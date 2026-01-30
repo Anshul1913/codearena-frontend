@@ -72,9 +72,7 @@ export default function Navbar({ user }) {
                 className="absolute right-0 mt-2 w-44 bg-surface border border-border rounded-radius-lg shadow-shadow-strong overflow-hidden"
               >
                 <div className="flex flex-col text-sm text-muted">
-                  <button className="flex items-center gap-2 px-4 py-3 hover:bg-surface/80 transition-colors text-left">
-                    <User size={16} /> View Profile
-                  </button>
+                  
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-4 py-3 hover:bg-surface/80 transition-colors text-left text-error hover:text-error"

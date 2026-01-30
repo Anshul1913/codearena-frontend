@@ -3,10 +3,12 @@ import { Trophy, Sword, KeyRound, Flame } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function UserStats({ user }) {
+  console.log(user);
+  
   const stats = [
-    { label: "Rank", value: `#${user.rank}`, icon: <Trophy /> },
-    { label: "Wins", value: user.wins, icon: <Sword /> },
-    { label: "Losses", value: user.losses, icon: <KeyRound /> },
+    { label: "Rank", value: `#${user?.userRank||"N/A"}`, icon: <Trophy /> },
+    { label: "Wins", value: user.totalWin, icon: <Sword /> },
+    { label: "Losses", value: user.totalLoss, icon: <KeyRound /> },
     // { label: "Streak", value: `${user.streak}🔥`, icon: <Flame /> },
   ];
 
