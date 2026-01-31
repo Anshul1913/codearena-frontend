@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, X } from "lucide-react"; 
 import CodingEnvironment from "../../components/editor/CodingEnvironment";
 import CodeExecutionApi from "../../services/CodeExecutionService";
 import ChatBox from "../../components/chat/chatbox";
@@ -20,7 +20,10 @@ export default function RoomPage() {
 
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  
+  // ✅ 1. State for Chat & Notifications
   const [showChat, setShowChat] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const autoExitTriggered = useRef(false);
 
@@ -29,6 +32,21 @@ export default function RoomPage() {
     python: "3.10.0",
     cpp: "10.2.0",
     java: "15.0.2",
+  };
+
+  // ✅ 2. Callback passed to ChatBox
+  const handleMessageReceived = () => {
+    if (!showChat) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  };
+
+  // ✅ 3. Toggle Logic
+  const toggleChat = () => {
+    setShowChat((prev) => !prev);
+    if (!showChat) {
+      setUnreadCount(0); // Reset when opening
+    }
   };
 
   useEffect(() => {
@@ -214,29 +232,56 @@ export default function RoomPage() {
         renderHeaderRight={renderHeaderRight}
       />
 
-      {/* CHAT BUTTON */}
+      {/* ✅ 4. Updated Floating Chat Button 
+          - Changed bottom-10 to bottom-6 (Lowered it slightly)
+      */}
       <button
-        onClick={() => setShowChat((prev) => !prev)}
-        className="fixed bottom-4 right-4 p-3 bg-primary text-white rounded-full shadow-lg z-40"
+        onClick={toggleChat}
+        className={`fixed bottom-6 right-6 p-4 bg-primary text-white rounded-full shadow-2xl z-50 hover:scale-110 hover:bg-primary/90 transition-all duration-300 ease-out ${
+          showChat 
+            ? "opacity-0 pointer-events-none translate-y-20 scale-50" 
+            : "opacity-100 translate-y-0 scale-100"
+        }`}
       >
-        <MessageCircle size={22} />
+        <MessageCircle size={28} strokeWidth={2.5} />
+        
+        {unreadCount > 0 && (
+          <>
+            <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 opacity-75 animate-ping pointer-events-none"></span>
+            <span className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-full bg-red-600 border-[3px] border-surface text-white text-[11px] font-bold shadow-md">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          </>
+        )}
       </button>
 
-      {/* CHAT PANEL */}
-      {showChat && (
-        <div className="fixed inset-y-0 right-0 w-[350px] bg-surface border-l z-50 shadow-2xl">
-          <div className="flex justify-between items-center p-3 border-b">
-            <span className="font-semibold text-primary">Chat</span>
-            <button
-              onClick={() => setShowChat(false)}
-              className="text-sm text-error hover:text-error/80"
-            >
-              ✕
-            </button>
-          </div>
-          <ChatBox roomId={roomCode} height="calc(100% - 50px)" />
+      {/* ✅ 5. Persisted Chat Panel */}
+      <div 
+        className={`fixed inset-y-0 right-0 w-[350px] bg-surface border-l z-50 shadow-2xl transition-transform duration-300 ease-in-out ${
+          showChat ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between items-center p-3 border-b">
+          <span className="font-semibold text-primary">Chat</span>
+          
+          {/* ❌ RED CLOSE BUTTON with Hover Effect */}
+          <button
+            onClick={() => {
+                setShowChat(false);
+                setUnreadCount(0);
+            }}
+            className="p-1 rounded-full text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
+          >
+            <X size={24} strokeWidth={2.5} />
+          </button>
         </div>
-      )}
+        
+        <ChatBox 
+            roomId={roomCode} 
+            height="calc(100% - 50px)" 
+            onMessageReceived={handleMessageReceived} 
+        />
+      </div>
     </>
   );
 }
