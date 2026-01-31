@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import UserStats from "../components/dashboard/UserStats";
 import ActionButtons from "../components/dashboard/ActionButton";
@@ -9,12 +9,34 @@ import CreateRoomModal from "../components/room/CreateRoomModal";
 import RoomApi from "../services/RoomService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import UserProfileApi from "../services/UserProfileService";
 
 export default function DashboardPage() {
-  const user = { name: "Anshul", rank: 12, wins: 42, losses: 18, streak: 5 };
+  // const user = { name: "Anshul", rank: 12, wins: 42, losses: 18, streak: 5 };
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
   const navigate = useNavigate();
+  
+  useEffect(() => {
+  fetchUserProfile();
+}, []);
+
+let mounted = true;
+
+const fetchUserProfile = async () => {
+  try {
+    const response = await UserProfileApi.getUserProfile();
+    if (mounted) {
+      setUserProfile(response.data);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
   const handleCreateRoom = async (roomData) => {
 
     try {
@@ -71,22 +93,26 @@ export default function DashboardPage() {
   //     { opponent: "Karan", type: "Coding", result: "Win" },
   //   ];
 
+  if (!userProfile) {
+  return <div className="text-center p-10">Loading...</div>;
+}
+
   return (
     <div className="min-h-screen bg-bg text-text font-sans relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-transparent blur-3xl" />
-      <Navbar user={user} />
+      <Navbar user={userProfile} />
 
       <main className="px-6 md:px-16 py-12 relative z-10">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-display font-bold">
-            Welcome back, <span className="text-primary">{user.name}</span> 👋
+            Welcome back, <span className="text-primary">{userProfile?.name}</span> 👋
           </h2>
           <p className="text-muted mt-2">
             Ready to battle, learn, and climb the leaderboard?
           </p>
         </div>
 
-        <UserStats user={user} />
+        <UserStats user={userProfile} />
         <ActionButtons
           onCreate={() => setShowCreateModal(true)}
           onJoin={() => setShowJoinModal(true)}

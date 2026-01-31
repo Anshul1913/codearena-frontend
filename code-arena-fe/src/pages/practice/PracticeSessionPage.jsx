@@ -46,6 +46,8 @@ export default function PracticeSessionPage() {
     const loadSession = async () => {
         try {
             const response = await PracticeApi.getSessionDetails(sessionId);
+            console.log(response);
+            
             if (response && response.data) {
                 setSession(response.data);
                 setTimeRemaining(response.data.remainingTimeMinutes * 60);
@@ -165,7 +167,17 @@ export default function PracticeSessionPage() {
     const handleSkipQuestion = async () => {
         setSubmitting(true);
         try {
+            console.log(session.maxQuestions);
+            console.log(currentQuestion.questionNumber);
+            
+            if (session.maxQuestions == currentQuestion.questionNumber) {
+                handleEndSession();
+                return;
+            }
             const response = await PracticeApi.skipQuestion(sessionId);
+            
+            console.log(response);
+            
             if (response && response.data) {
                 setCurrentQuestion(response.data);
                 setAnswer(response.data.starterCodes?.[0]?.codeTemplate || "");
