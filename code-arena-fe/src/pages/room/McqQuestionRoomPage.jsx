@@ -18,7 +18,6 @@ export default function McqRoomPage() {
   const [showChat, setShowChat] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true });
   document.addEventListener("copy", (e) => e.preventDefault());
   document.addEventListener("paste", (e) => e.preventDefault());
   const [timeLeft, setTimeLeft] = useState(null);
