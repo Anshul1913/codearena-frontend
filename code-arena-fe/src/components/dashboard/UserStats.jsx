@@ -6,14 +6,14 @@ export default function UserStats({ user }) {
   console.log(user);
   
   const stats = [
-    { label: "Rank", value: `#${user?.userRank||"N/A"}`, icon: <Trophy /> },
+    // { label: "Rank", value: `#${user?.userRank||"N/A"}`, icon: <Trophy /> },
     { label: "Wins", value: user.totalWin, icon: <Sword /> },
     { label: "Losses", value: user.totalLoss, icon: <KeyRound /> },
     // { label: "Streak", value: `${user.streak}🔥`, icon: <Flame /> },
   ];
 
   return (
-    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+    <div className="grid sm:grid-cols-2 md:grid-cols-2 gap-6 mb-12">
       {stats.map((stat, index) => (
         <motion.div
           key={index}

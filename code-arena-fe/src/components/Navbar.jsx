@@ -36,8 +36,8 @@ export default function Navbar({ user }) {
           // href="#leaderboard"
           className="flex items-center gap-2 text-muted text-sm font-medium hover:text-primary transition-colors hover:underline cursor-pointer"
         >
-          <Trophy size={18} />
-          Leaderboard
+          {/* <Trophy size={18} /> */}
+          {/* Leaderboard */}
         </a>
 
         {/* Profile Dropdown */}
