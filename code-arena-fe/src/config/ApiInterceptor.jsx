@@ -12,7 +12,7 @@ const excludedUrls = [
 
 // Create an Axios instance
 const apiInterceptor = axios.create({
-    baseURL: 'http://localhost:8080/api', // Your API base URL
+    baseURL: 'http://localhost:8080/api/v1', // Your API base URL
     withCredentials: true, // Allow credentials to be sent (including cookies)
 });
 

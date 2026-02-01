@@ -175,6 +175,8 @@ export default function RoomPage() {
         codingQuestionId: questions[currentIndex].id,
       };
       const result = await CodeExecutionApi.submitCode(payload, roomCode);
+      console.log(result);
+      
       if (result.stdout) setOutput(result.stdout);
 
       const statusResponse = await RoomApi.fetchRoomQuestionStatus(roomCode);

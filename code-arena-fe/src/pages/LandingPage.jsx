@@ -20,9 +20,7 @@ const LandingPage = () => {
 
         <div className="hidden md:flex space-x-8 text-muted font-medium">
           <a href="#features" className="hover:text-primary transition-colors">Features</a>
-          <a href="#leaderboard" className="hover:text-primary transition-colors">Leaderboard</a>
-          <a href="#community" className="hover:text-primary transition-colors">Community</a>
-        </div>
+          </div>
 
         <button onClick={()=>navigate("/login")} className="bg-gradient-to-r from-primary to-secondary text-white px-5 py-2 rounded-radius-lg font-display font-semibold shadow-shadow-soft hover:shadow-shadow-strong transition-all">
           Login
@@ -50,11 +48,11 @@ const LandingPage = () => {
         </p>
 
         <div className="flex gap-4">
-          <button className="bg-gradient-to-r from-primary to-secondary px-6 py-3 rounded-radius-lg font-display font-semibold hover:scale-105 transition-all flex items-center gap-2">
+          <button className="bg-gradient-to-r from-primary to-secondary px-6 py-3 rounded-radius-lg font-display font-semibold hover:scale-105 transition-all flex items-center gap-2" onClick={()=>navigate("/login")}>
             Start Battle ⚔️ <ArrowRight size={18} />
           </button>
 
-          <button className="border border-primary text-primary px-6 py-3 rounded-radius-lg font-display font-semibold hover:bg-primary/10 transition-all">
+          <button className="border border-primary text-primary px-6 py-3 rounded-radius-lg font-display font-semibold hover:bg-primary/10 transition-all" onClick={()=>navigate("/login")}>
             Practice Mode 🧠
           </button>
         </div>

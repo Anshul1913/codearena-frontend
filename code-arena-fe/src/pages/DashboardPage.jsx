@@ -77,7 +77,10 @@ const fetchUserProfile = async () => {
         navigate("/coding-waiting-room/" + roomId);
       }
     } catch (error) {
-      console.error("❌ Error joining room:", error);
+      console.log(error.response.data.message);
+      
+      toast.error(error.response.data.message);
+      // console.error("❌ Error joining room:", error);
     }
 
   };

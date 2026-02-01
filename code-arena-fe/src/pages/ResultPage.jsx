@@ -9,7 +9,8 @@ export default function RoomResultPage() {
   const { roomCode } = useParams();
   const location = useLocation();
   const initialResult = location.state?.result;
-
+  console.log(location.state);
+  
   const [result, setResult] = useState(initialResult);
   const [waiting, setWaiting] = useState(!initialResult?.winner || initialResult?.winner === "PENDING" || initialResult?.winner === "WAITING");
   const [winner, setWinner] = useState(initialResult?.winner && initialResult?.winner !== "PENDING" && initialResult?.winner !== "WAITING" ? initialResult.winner : null);
@@ -46,6 +47,8 @@ export default function RoomResultPage() {
             const currentUsername = JwtUtils.getUsername();
             if (data.player1 === currentUsername || data.player2 === currentUsername) {
               const isPlayer1 = data.player1 === currentUsername;
+            
+              
               setResult(prev => ({
                 ...prev,
                 score: isPlayer1 ? data.player1Score : data.player2Score,
@@ -81,6 +84,10 @@ export default function RoomResultPage() {
       const response = await RoomApi.getRoomDetails(roomCode);
       const roomData = response.data; // API returns { success, message, data: { ...roomInfo } }
       console.log("Room details fetched:", roomData?.status, roomData?.winner);
+        // console.log(isPlayer1);
+              console.log(initialResult);
+              console.log(result);
+              
       if (roomData?.status === "COMPLETED") {
         setWinner(roomData.winner || "TIE");
         setWaiting(false);
@@ -146,10 +153,12 @@ export default function RoomResultPage() {
             <p className="text-xs text-gray-400">Correct Answers</p>
             <p className="text-xl font-bold">{result.correctAnswers ?? questionStatuses.filter(s => s.solved).length}</p>
           </div>
-          <div>
-            <p className="text-xs text-gray-400">Time Taken</p>
-            <p className="text-xl font-bold">{result.timeTaken ?? 0}s</p>
-          </div>
+          {result.timeTaken!=undefined && (
+            <div>
+              <p className="text-xs text-gray-400">Time Taken</p>
+              <p className="text-xl font-bold">{result.timeTaken ?? 0}s</p>
+            </div>
+          )}
           <div>
             <p className="text-xs text-gray-400">Total Questions</p>
             <p className="text-xl font-bold">{result.totalQuestions || roomQuestions.length || 0}</p>
