@@ -1,3 +1,5 @@
+// codearena-frontend/code-arena-fe/src/routes/RouteComponent.jsx
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
@@ -5,6 +7,7 @@ import LoginPage from '../pages/LoginPage';
 import SignupPage from '../pages/SignupPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import DashboardPage from '../pages/DashboardPage';
+import LeaderboardPage from '../pages/LeaderboardPage'; // ✅ New Import
 import ROLES from '../utils/constants/Role';
 import ProtectedRoute from '../config/ProtectedRoute';
 import NotFoundPage from '../pages/404/NotFoundPage';
@@ -18,7 +21,6 @@ import PracticeSessionPage from '../pages/practice/PracticeSessionPage';
 import PracticeResultPage from '../pages/practice/PracticeResultPage';
 
 const RoutesComponent = () => {
-
   return (
     <Router>
       <Routes>
@@ -27,6 +29,9 @@ const RoutesComponent = () => {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/dashboard" element={<ProtectedRoute element={DashboardPage} allowedRoles={[ROLES.PLAYER]} />} />
+        
+        {/* ✅ Added Leaderboard Route */}
+        <Route path="/leaderboard" element={<ProtectedRoute element={LeaderboardPage} allowedRoles={[ROLES.PLAYER]} />} />
 
         {/* Practice Routes */}
         <Route path="/practice" element={<ProtectedRoute element={PracticeSetupPage} allowedRoles={[ROLES.PLAYER]} />} />

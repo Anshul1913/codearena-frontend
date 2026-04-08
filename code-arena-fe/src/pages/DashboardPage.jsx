@@ -1,9 +1,9 @@
+// codearena-frontend/code-arena-fe/src/pages/DashboardPage.jsx
+
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import UserStats from "../components/dashboard/UserStats";
 import ActionButtons from "../components/dashboard/ActionButton";
-import DashboardLeaderboard from "../components/dashboard/DashboardLeaderBoard";
-import RecentBattles from "../components/dashboard/RecentBattles";
 import JoinRoomModal from "../components/room/JoinRoomModal";
 import CreateRoomModal from "../components/room/CreateRoomModal";
 import RoomApi from "../services/RoomService";
@@ -12,93 +12,60 @@ import { useNavigate } from "react-router-dom";
 import UserProfileApi from "../services/UserProfileService";
 
 export default function DashboardPage() {
-  // const user = { name: "Anshul", rank: 12, wins: 42, losses: 18, streak: 5 };
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
-
   const navigate = useNavigate();
   
   useEffect(() => {
-  fetchUserProfile();
-}, []);
+    let mounted = true;
+    const fetchUserProfile = async () => {
+      try {
+        const response = await UserProfileApi.getUserProfile();
+        if (mounted) {
+          setUserProfile(response.data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+      }
+    };
 
-let mounted = true;
-
-const fetchUserProfile = async () => {
-  try {
-    const response = await UserProfileApi.getUserProfile();
-    if (mounted) {
-      setUserProfile(response.data);
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
-
+    fetchUserProfile();
+    return () => { mounted = false; };
+  }, []);
 
   const handleCreateRoom = async (roomData) => {
-
     try {
-      console.log("Creating room with:", roomData);
       const response = await RoomApi.createRoom(roomData);
       if (response.data.questionType === "MCQ Question") {
-
         navigate("/mcq-waiting-room/" + response.data.roomCode);
-        // navigate("/mcq-room/"+response.data.roomCode);
       } else {
         navigate("/coding-waiting-room/" + response.data.roomCode);
       }
       toast.success("🎉 Room created successfully!");
-      console.log("Room creation response:", response);
-
-      // Optional: navigate or update UI
-      // navigate(`/room/${response.roomId}`);
     } catch (error) {
-      console.error("❌ Error creating room:", error);
-
-      // Try to extract readable message from backend
-      const message =
-        error?.response?.data?.message ||
-        "Something went wrong while creating the room.";
-
+      const message = error?.response?.data?.message || "Something went wrong while creating the room.";
       toast.error(`⚠️ ${message}`);
     }
   };
 
   const handleJoinRoom = async (roomId) => {
-    console.log("Joining room:", roomId);
     try {
       const response = await RoomApi.joinRoom(roomId);
-      console.log("Join room response:", response);
       if (response.questionType === "MCQ Question") {
         navigate("/mcq-waiting-room/" + roomId);
       } else {
         navigate("/coding-waiting-room/" + roomId);
       }
     } catch (error) {
-      console.log(error.response.data.message);
-      
-      toast.error(error.response.data.message);
-      // console.error("❌ Error joining room:", error);
+      console.error("❌ Error joining room:", error);
+      toast.error("Failed to join room.");
     }
-
   };
-  //   const players = [
-  //     { rank: 1, name: "Aarav", wins: 120, streak: 10 },
-  //     { rank: 2, name: "Riya", wins: 98, streak: 8 },
-  //     { rank: 3, name: "Karan", wins: 90, streak: 6 },
-  //   ];
-
-  //   const battles = [
-  //     { opponent: "Riya", type: "Coding", result: "Win" },
-  //     { opponent: "Aarav", type: "Quiz", result: "Loss" },
-  //     { opponent: "Karan", type: "Coding", result: "Win" },
-  //   ];
 
   if (!userProfile) {
-  return <div className="text-center p-10">Loading...</div>;
-}
+    return <div className="text-center p-10 text-primary animate-pulse">Loading Arena...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-bg text-text font-sans relative overflow-hidden">
@@ -110,17 +77,26 @@ const fetchUserProfile = async () => {
           <h2 className="text-3xl font-display font-bold">
             Welcome back, <span className="text-primary">{userProfile?.name}</span> 👋
           </h2>
-          <p className="text-muted mt-2">
-            Ready to battle, learn, and climb the leaderboard?
-          </p>
+          <div className="flex flex-col items-center gap-2 mt-2">
+            <p className="text-muted">Ready to battle, learn, and climb the leaderboard?</p>
+            {/* Added dynamic link to Leaderboard */}
+            <button 
+              onClick={() => navigate("/leaderboard")}
+              className="text-secondary font-semibold hover:underline flex items-center gap-1 transition-all"
+            >
+              🏆 View Global Leaderboard
+            </button>
+          </div>
         </div>
 
         <UserStats user={userProfile} />
+        
         <ActionButtons
           onCreate={() => setShowCreateModal(true)}
           onJoin={() => setShowJoinModal(true)}
           onPractice={() => navigate("/practice")}
         />
+
         <CreateRoomModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
@@ -132,8 +108,6 @@ const fetchUserProfile = async () => {
           onClose={() => setShowJoinModal(false)}
           onJoin={handleJoinRoom}
         />
-        {/* <DashboardLeaderboard players={players} />
-        <RecentBattles battles={battles} /> */}
       </main>
     </div>
   );
